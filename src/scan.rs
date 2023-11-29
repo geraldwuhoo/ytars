@@ -1,0 +1,203 @@
+use actix_web::{get, web, HttpResponse, Result};
+use glob::glob;
+use log::{debug, info};
+use serde::Deserialize;
+use sqlx::PgPool;
+use std::{
+    fs,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+};
+use time::macros::format_description;
+use time::Date;
+
+use crate::{
+    errors::YtarsError,
+    model::{ChannelModel, VideoJson},
+};
+
+#[derive(Debug, Deserialize)]
+pub struct ScanParams {
+    #[serde(default = "_default_false")]
+    overwrite: bool,
+}
+
+const fn _default_false() -> bool {
+    false
+}
+
+async fn populate_channel(
+    path: &str,
+    sanitized_channel: String,
+    pool: &PgPool,
+) -> Result<(), YtarsError> {
+    let paths = fs::read_dir(format!("{}/{}", path, sanitized_channel))?
+        .filter_map(|r| r.ok())
+        .map(|r| r.path())
+        .filter(|r| {
+            r.is_file()
+                && (r.extension().unwrap_or_default() == "webm"
+                    || r.extension().unwrap_or_default() == "mp4")
+        });
+
+    for full_path in paths {
+        let jsonpath = full_path.clone();
+        let jsonpath = jsonpath.with_extension("info.json");
+        let jsoncontents = fs::read_to_string(jsonpath)?;
+        let video = serde_json::from_str::<VideoJson>(&jsoncontents)?;
+
+        let filename = full_path
+            .file_name()
+            .ok_or_else(|| YtarsError::Other(format!("Failed to find file {:?}", full_path)))?
+            .to_str()
+            .ok_or_else(|| {
+                YtarsError::Other(format!("Failed to convert to str file {:?}", full_path))
+            })?
+            .to_string();
+        let filestem = full_path
+            .file_stem()
+            .ok_or_else(|| YtarsError::Other(format!("Failed to find file {:?}", full_path)))?
+            .to_str()
+            .ok_or_else(|| {
+                YtarsError::Other(format!("Failed to convert to str file {:?}", full_path))
+            })?
+            .to_string();
+        debug!("Working on {} {}", filename, filestem);
+        let duration_string = if video.duration_string.contains(':') {
+            video.duration_string.clone()
+        } else {
+            format!("0:{:0>2}", video.duration_string)
+        };
+        let description = video
+            .description
+            .as_ref()
+            .map(|description| description.replace('\u{0000}', ""));
+        let short = (!video.duration_string.contains(':') || video.duration_string == "1:00")
+            && video.aspect_ratio < 1.0;
+        let format = format_description!("[year][month][day]");
+        let date = Date::parse(&video.upload_date, &format)?;
+
+        sqlx::query_as!(
+            VideoModel,
+            r#"INSERT INTO video (id, title, filename, filestem, upload_date, duration_string, description, short, channel_id)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                ON CONFLICT (id)
+                DO NOTHING"#,
+            video.id,
+            video.title,
+            filename,
+            filestem,
+            date,
+            duration_string,
+            description,
+            short,
+            video.channel_id,
+        )
+        .execute(pool)
+        .await?;
+    }
+
+    Ok(())
+}
+
+async fn populate(path: &str, overwrite: bool, pool: &PgPool) -> Result<(), YtarsError> {
+    if overwrite {
+        debug!("Overwrite requested, deleting all existing data...");
+        sqlx::query!("TRUNCATE TABLE video, channel")
+            .execute(pool)
+            .await?;
+    }
+
+    debug!("Populating database...");
+    let channels = fs::read_dir(path)?
+        .filter_map(|r| r.ok())
+        .map(|r| r.path())
+        .filter(|r| r.is_dir());
+
+    for channel_path in channels {
+        let channel_name = channel_path
+            .file_name()
+            .ok_or_else(|| {
+                YtarsError::Other(format!(
+                    "Failed to find file for channel {:?}",
+                    channel_path
+                ))
+            })?
+            .to_str()
+            .ok_or_else(|| {
+                YtarsError::Other(format!(
+                    "Failed to convert to str file for channel {:?}",
+                    channel_path
+                ))
+            })?;
+        debug!("Working on {}", channel_name);
+
+        let mut json_paths = glob(&format!(
+            "{}/{c}/{c} - Videos *.info.json",
+            path,
+            c = channel_name
+        ))?;
+
+        let json_path = json_paths.next().ok_or(YtarsError::Other(format!(
+            "No results returned for glob {}",
+            channel_name
+        )))??;
+        let json_contents = fs::read_to_string(json_path)?;
+        let yt_channel = serde_json::from_str::<ChannelModel>(&json_contents)?;
+
+        sqlx::query_as!(
+            ChannelModel,
+            r#"INSERT INTO channel (id, name, sanitized_name, description)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (id)
+                DO NOTHING"#,
+            yt_channel.id,
+            yt_channel.name,
+            channel_name,
+            yt_channel.description,
+        )
+        .execute(pool)
+        .await?;
+
+        populate_channel(path, channel_name.to_string(), pool).await?;
+    }
+
+    debug!("Done populating postgres with video catalog");
+
+    Ok(())
+}
+
+#[get("/scan")]
+pub async fn scan_handler(
+    params: web::Query<ScanParams>,
+    video_path: web::Data<String>,
+    pool: web::Data<PgPool>,
+    scanning: web::Data<Arc<AtomicBool>>,
+) -> HttpResponse {
+    let overwrite = params.overwrite;
+    let status;
+    if scanning.load(Ordering::Acquire) {
+        status = "Already running a scan, please wait until complete";
+        info!("{}", status);
+    } else {
+        status = if overwrite {
+            "Force scan started"
+        } else {
+            "Scan started"
+        };
+        actix_web::rt::spawn(async move {
+            info!("{}{}", status, if overwrite { " (overwrite)" } else { "" });
+            scanning.store(true, Ordering::Release);
+            if let Err(e) = populate(&video_path, overwrite, &pool).await {
+                info!("Error scanning: {}", e);
+            } else {
+                info!("Finished scan");
+            }
+            scanning.store(false, Ordering::Release);
+        });
+    }
+
+    HttpResponse::Ok().body(status)
+}

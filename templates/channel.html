@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ channel.name }}{% if shorts %} (Shorts){% endif %} | Ytars</title>
+        <link rel="stylesheet" type="text/css" href="/static/style.css">
+    </head>
+    <body>
+        <header>
+            <a href="/">[ytars]</a>
+            &gt;
+            <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
+            {% if shorts -%}
+            &gt;
+            <a href="/shorts/{{ channel.id }}">Shorts</a>
+            {% endif -%}
+        </header>
+        <main>
+            <div style="margin-top: 1em" class="box">
+                <img class="pfp" width="100px" src="/files/{{ channel.sanitized_name }}/{{ channel.sanitized_name }} - Videos [{{ channel.id }}].jpg">
+                <h1>{{ channel.name }}{% if shorts %} (Shorts){% endif %}</h1>
+            </div>
+            {% if let Some(text) = channel.description -%}
+            {{ text|markdown }}
+            {% endif -%}
+            <p>{{ videos.len() }} videos</p>
+            <div class="box">
+                <a href="/channel/{{ channel.id }}">[Videos]</a>
+                <a href="/shorts/{{ channel.id }}">[Shorts]</a>
+                <a class="right" href="https://www.youtube.com/channel/{{ channel.id }}">[Open on YouTube]</a>
+            </div>
+            <hr>
+            <ul>
+                {% for video in videos -%}
+                <li class="video">
+                    <a href="/watch?v={{ video.id }}">{{ video.title }}</a> ({{ video.duration_string }})<br>
+                    {{ video.upload_date }}
+                </li>
+                {% endfor -%}
+            </ul>
+        </main>
+</html>

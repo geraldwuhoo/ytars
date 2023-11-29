@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ video.title }} | Ytars</title>
+        <link rel="stylesheet" type="text/css" href="/static/style.css">
+    </head>
+    <body>
+        <header>
+            <a href="/">[ytars]</a>
+            &gt;
+            <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
+            {% if video.short -%}
+            &gt;
+            <a href="/shorts/{{ channel.id }}">Shorts</a>
+            {% endif -%}
+            &gt;
+            <a href="/video/{{ video.id }}">{{ video.title }}</a>
+        </header>
+        <main>
+            <video poster="/files/{{ channel.sanitized_name }}/{{ video.filestem }}.webp" width="{% if video.short %}50{% else %}100{% endif %}%" controls preload="none">
+                <source src="/files/{{ channel.sanitized_name }}/{{ video.filename }}" />
+                <track src="/files/{{ channel.sanitized_name }}/{{ video.filestem }}.en.vtt" kind="subtitles" srclang="en" label="English" />
+            </video>
+            <h1>{{ video.title }}</h1>
+            <h4>{{ upload_date }}</h4>
+            <div class="box">
+                <img class="pfp" width="50px" src="/files/{{ channel.sanitized_name }}/{{ channel.sanitized_name }} - Videos [{{ channel.id }}].jpg">
+                <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
+                <a class="right" target="_blank" href="https://www.youtube.com/watch?v={{ video.id }}">[Open on YouTube]</a>
+            </div>
+            <hr>
+            {% if let Some(text) = video.description -%}
+            <details>
+            <summary>Description</summary>
+            {{ text|markdown }}
+            </details>
+            {% endif -%}
+        </main>
+</html>

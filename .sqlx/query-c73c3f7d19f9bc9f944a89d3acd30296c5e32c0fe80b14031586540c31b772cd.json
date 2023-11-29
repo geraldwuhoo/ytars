@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM video\n        WHERE channel_id = $1 AND short = $2\n        ORDER BY upload_date DESC;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "filename",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "filestem",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "upload_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 5,
+        "name": "duration_string",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "short",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "channel_id",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "c73c3f7d19f9bc9f944a89d3acd30296c5e32c0fe80b14031586540c31b772cd"
+}

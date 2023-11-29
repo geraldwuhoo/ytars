@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "TRUNCATE TABLE video, channel",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "1f2a447f34bdb207e9be8b92b9dba160a7d96b86f45672b8ebacda24e626722a"
+}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Feed | Ytars</title>
+        <link rel="stylesheet" type="text/css" href="/static/style.css">
+    </head>
+    <body>
+        <header>
+            <a href="/">[ytars]</a>
+            &gt;
+            <a href="/feed">feed</a>
+        </header>
+        <main>
+            <h1>Feed</h1>
+            <div class="box">
+                <a href="/feed">[Videos]</a>
+                <a href="/feed?shorts=true">[Shorts]</a>
+                <div class="right">
+                    <a href="/scan">[Scan]</a><a href="/scan?overwrite=true">[Force Scan]</a>
+                </div>
+            </div>
+            <hr>
+            <ul>
+                {% for video in videos -%}
+                <li class="video">
+                    <a href="/watch?v={{ video.id }}">{{ video.title }}</a> ({{ video.duration_string }})<br>
+                    <a href="/channel/{{ video.channel_id }}">{{ video.name }}</a><br>
+                    {{ video.upload_date }}
+                </li>
+                {% endfor -%}
+            </ul>
+        </main>
+</html>

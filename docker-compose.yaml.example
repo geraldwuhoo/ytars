@@ -1,0 +1,31 @@
+version: '2'
+
+services:
+  ytars:
+    image: ytars
+    restart: unless-stopped
+    environment:
+      POSTGRES_USERNAME: ytars
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: db
+      POSTGRES_DB: ytars
+      VIDEO_PATH: /videos
+      RUST_LOG: debug
+    ports:
+      - 80:8080
+    volumes:
+      - /path/to/videos:/videos:ro
+  db:
+    image: docker.io/library/postgres:15.5-alpine3.18
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ytars
+      POSTGRES_DB: ytars
+    ports:
+      - 5432:5432
+    volumes:
+      - db:/var/lib/postgresql/data
+
+volumes:
+  db:

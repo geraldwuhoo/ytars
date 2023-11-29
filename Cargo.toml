@@ -1,0 +1,41 @@
+[package]
+name = "ytars"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-files = "0.6.2"
+actix-web = "4.4.0"
+actix-web-static-files = "4.0.1"
+askama = { version = "0.12.1", features = ["markdown"] }
+clap = { version = "4.4.8", features = ["derive", "env"] }
+env_logger = "0.10.1"
+glob = "0.3.1"
+log = "0.4.20"
+serde = { version = "1.0.192", features = ["derive"] }
+serde_json = "1.0.108"
+sqlx = { version = "0.7.2", features = [
+    "postgres",
+    "runtime-tokio",
+    "time",
+    "tls-native-tls",
+] }
+static-files = "0.2.3"
+thiserror = "1.0.50"
+time = { version = "0.3.30", features = ["formatting", "parsing"] }
+urlencoding = "2.1.3"
+
+[build-dependencies]
+static-files = "0.2.3"
+
+[profile.release]
+strip = true
+lto = true
+opt-level = 3
+codegen-units = 1
+
+[target.'cfg(all(target_env = "musl", target_pointer_width = "64"))'.dependencies]
+openssl = { version = "0.10.58", features = ["vendored"] }
+jemallocator = "0.5.4"

@@ -1,0 +1,53 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT video.id, title, upload_date, duration_string, channel.id AS channel_id, channel.name\n        FROM video\n        INNER JOIN channel ON video.channel_id = channel.id\n        WHERE short = $1\n        ORDER BY upload_date DESC\n        LIMIT $2;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "upload_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 3,
+        "name": "duration_string",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "channel_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "name",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "4f257cdcd462313a074ee21d29a71830c2df108660b0c173058726516d0cf234"
+}

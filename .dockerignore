@@ -1,0 +1,11 @@
+**
+
+!migrations/**
+!src/**
+!static/**
+!templates/**
+!.sqlx/**
+!build.rs
+!Cargo.toml
+!Cargo.lock
+

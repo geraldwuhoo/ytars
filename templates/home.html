@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Ytars</title>
+        <link rel="stylesheet" type="text/css" href="/static/style.css">
+    </head>
+    <body>
+        <header>
+            <a href="/">[ytars]</a>
+        </header>
+        <main>
+            <h1>Channels</h1>
+            <div class="box">
+                <a href="/feed">[Feed]</a>
+                <div class="right">
+                    <a href="/scan">[Scan]</a><a href="/scan?overwrite=true">[Force Scan]</a>
+                </div>
+            </div>
+            <hr>
+            <ul>
+                {% for ytchannel in channels -%}
+                <li><a href="/channel/{{ ytchannel.id }}">{{ ytchannel.name }}</a></li>
+                {% endfor -%}
+            </ul>
+        </main>
+</html>
