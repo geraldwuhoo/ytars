@@ -22,7 +22,6 @@ variables:
     - cargo version
     - rustup component add clippy
     - rustup component add rustfmt
-    - cargo install cargo-audit || true
   cache:
     untracked: true
     paths:
@@ -104,13 +103,6 @@ lint:format:
     - .lint
   script:
     - cargo fmt -- --check
-
-lint:audit:
-  extends:
-    - .lint
-  script:
-    - cargo audit
-  allow_failure: true
 
 build:container:
   stage: build
