@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT filestem FROM video WHERE filestem = $1;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "filestem",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8f4ee96833d9bf3173892a93ec7681aa1141ddcd245ac2870e896be5dfc330e5"
+}

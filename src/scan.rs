@@ -10,8 +10,7 @@ use std::{
         Arc,
     },
 };
-use time::macros::format_description;
-use time::Date;
+use time::{macros::format_description, Date};
 
 use crate::{
     errors::YtarsError,
