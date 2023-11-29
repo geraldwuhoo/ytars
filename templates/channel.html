@@ -18,7 +18,7 @@
         </header>
         <main>
             <div style="margin-top: 1em" class="box">
-                <img class="pfp" width="100px" src="/files/{{ channel.sanitized_name }}/{{ channel.sanitized_name }} - Videos [{{ channel.id }}].jpg">
+                <img class="pfp" width="100px" src="/files/{{ channel.sanitized_name|urlencode }}/{{ channel.sanitized_name|urlencode }}%20-%20Videos%20[{{ channel.id }}].jpg">
                 <h1>{{ channel.name }}{% if shorts %} (Shorts){% endif %}</h1>
             </div>
             {% if let Some(text) = channel.description -%}

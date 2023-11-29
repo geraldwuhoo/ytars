@@ -7,7 +7,6 @@ use askama::Template;
 use serde::Deserialize;
 use sqlx::PgPool;
 use time::format_description;
-use urlencoding::encode;
 
 use crate::{
     errors::YtarsError,
@@ -41,7 +40,7 @@ pub async fn yt_video_handler(
             .finish());
     }
 
-    let mut video = sqlx::query_as!(VideoModel, "SELECT * FROM video WHERE id = $1;", video_id,)
+    let video = sqlx::query_as!(VideoModel, "SELECT * FROM video WHERE id = $1;", video_id,)
         .fetch_one(pool.get_ref())
         .await?;
     let channel = sqlx::query_as!(
@@ -54,8 +53,6 @@ pub async fn yt_video_handler(
 
     let format = format_description::parse("[month repr:long] [day padding:none], [year]")?;
     let upload_date = video.upload_date.format(&format)?;
-    video.filename = encode(&video.filename).into_owned();
-    video.filestem = encode(&video.filestem).into_owned();
 
     let vid = VideoTemplate {
         video,

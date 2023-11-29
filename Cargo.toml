@@ -25,7 +25,6 @@ sqlx = { version = "0.7.2", features = [
 static-files = "0.2.3"
 thiserror = "1.0.50"
 time = { version = "0.3.30", features = ["formatting", "parsing"] }
-urlencoding = "2.1.3"
 
 [build-dependencies]
 static-files = "0.2.3"
