@@ -31,6 +31,7 @@ const fn _default_false() -> bool {
 async fn populate_channel(
     path: &str,
     sanitized_channel: String,
+    overwrite: bool,
     pool: &PgPool,
 ) -> Result<(), YtarsError> {
     let paths = fs::read_dir(format!("{}/{}", path, sanitized_channel))?
@@ -43,11 +44,6 @@ async fn populate_channel(
         });
 
     for full_path in paths {
-        let jsonpath = full_path.clone();
-        let jsonpath = jsonpath.with_extension("info.json");
-        let jsoncontents = fs::read_to_string(jsonpath)?;
-        let video = serde_json::from_str::<VideoJson>(&jsoncontents)?;
-
         let filename = full_path
             .file_name()
             .ok_or_else(|| YtarsError::Other(format!("Failed to find file {:?}", full_path)))?
@@ -64,7 +60,22 @@ async fn populate_channel(
                 YtarsError::Other(format!("Failed to convert to str file {:?}", full_path))
             })?
             .to_string();
-        debug!("Working on {} {}", filename, filestem);
+
+        if !overwrite {
+            let video = sqlx::query!("SELECT filestem FROM video WHERE filestem = $1;", filestem)
+                .fetch_optional(pool)
+                .await?;
+            if video.is_some() {
+                debug!("Skipping {}", filestem);
+                continue;
+            }
+        }
+
+        debug!("Working on {}", filestem);
+        let jsonpath = full_path.clone();
+        let jsonpath = jsonpath.with_extension("info.json");
+        let jsoncontents = fs::read_to_string(jsonpath)?;
+        let video = serde_json::from_str::<VideoJson>(&jsoncontents)?;
         let duration_string = if video.duration_string.contains(':') {
             video.duration_string.clone()
         } else {
@@ -161,7 +172,7 @@ async fn populate(path: &str, overwrite: bool, pool: &PgPool) -> Result<(), Ytar
         .execute(pool)
         .await?;
 
-        populate_channel(path, channel_name.to_string(), pool).await?;
+        populate_channel(path, channel_name.to_string(), overwrite, pool).await?;
     }
 
     debug!("Done populating postgres with video catalog");

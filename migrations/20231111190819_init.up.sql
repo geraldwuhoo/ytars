@@ -27,6 +27,9 @@ CREATE INDEX video_channel_idx ON video USING HASH (channel_id);
 DROP INDEX IF EXISTS video_upload_date_idx;
 CREATE INDEX video_upload_date_idx ON video (upload_date);
 
+DROP INDEX IF EXISTS video_filestem_idx;
+CREATE INDEX video_filestem_idx ON video USING HASH (filestem);
+
 DROP INDEX IF EXISTS channel_name_idx;
 CREATE INDEX channel_name_idx ON channel (name);
 
