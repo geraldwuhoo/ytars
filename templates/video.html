@@ -16,7 +16,7 @@
             <a href="/shorts/{{ channel.id }}">Shorts</a>
             {% endif -%}
             &gt;
-            <a href="/video/{{ video.id }}">{{ video.title }}</a>
+            <a href="/watch?v={{ video.id }}">{{ video.title }}</a>
         </header>
         <main>
             <video poster="/files/{{ channel.sanitized_name }}/{{ video.filestem }}.webp" width="{% if video.short %}50{% else %}100{% endif %}%" controls preload="none">
