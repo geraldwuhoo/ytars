@@ -33,6 +33,9 @@ variables:
 .build_binary:
   stage: build
   image: docker.io/library/rust:1.74.0
+  needs: &build_needs
+    - lint:clippy
+    - lint:format
   before_script:
     - cargo version
   cache:
@@ -109,6 +112,7 @@ build:container:
   image:
     name: gcr.io/kaniko-project/executor:v1.17.0-debug
     entrypoint: [""]
+  needs: *build_needs
   before_script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
