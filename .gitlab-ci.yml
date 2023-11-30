@@ -98,12 +98,16 @@ variables:
 lint:clippy:
   extends:
     - .lint
+  cache:
+    key: clippy
   script:
     - cargo clippy -- -D warnings
 
 lint:format:
   extends:
     - .lint
+  cache:
+    key: format
   script:
     - cargo fmt -- --check
 
