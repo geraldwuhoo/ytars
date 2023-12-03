@@ -11,6 +11,15 @@
             <a href="/">[ytars]</a>
             &gt;
             <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
+            {% match video.video_type -%}
+                {% when VideoType::Short -%}
+            &gt;
+            <a href="/shorts/{{ channel.id }}">Shorts</a>
+                {% when VideoType::Stream -%}
+            &gt;
+            <a href="/streams/{{ channel.id }}">Streams</a>
+                {% when VideoType::Video -%}
+            {% endmatch -%}
             &gt;
             <a href="/watch?v={{ video.id }}">{{ video.title }}</a>
         </header>
@@ -22,16 +31,21 @@
                 {% else -%}
                     {% let width = "100%" -%}
             {% endmatch -%}
-            <video poster="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" width="{{ width }}" controls preload="none">
-                <source src="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filename|urlencode }}" />
-                <track src="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.en.vtt" kind="subtitles" srclang="en" label="English" />
+            {% let encoded_channel = channel.sanitized_name|urlencode -%}
+            {% let encoded_filename = video.filename|urlencode -%}
+            {% let encoded_filestem = video.filestem|urlencode -%}
+            <video poster="/files/{{ encoded_channel }}/{{ encoded_filestem }}.webp" width="{{ width }}" controls preload="none">
+                <source src="/files/{{ encoded_channel }}/{{ encoded_filename }}" />
+                <track src="/files/{{ encoded_channel }}/{{ encoded_filestem }}.en.vtt" kind="subtitles" srclang="en" label="English" />
             </video>
             <h1>{{ video.title }}</h1>
             <h4>{{ upload_date }}</h4>
             <div class="box">
-                <img class="pfp" width="50px" src="/files/{{ channel.sanitized_name|urlencode }}/{{ channel.sanitized_name|urlencode }}%20-%20Videos%20[{{ channel.id }}].jpg">
+                <img class="pfp" width="50px" src="/files/{{ encoded_channel }}/{{ encoded_channel }}%20-%20Videos%20[{{ channel.id }}].jpg">
                 <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
-                <a class="right" target="_blank" href="https://www.youtube.com/watch?v={{ video.id }}">[Open on YouTube]</a>
+                <div class="right">
+                    <a href="/files/{{ encoded_channel }}/{{ encoded_filename }}" download>[Download]</a><a target="_blank" href="https://www.youtube.com/watch?v={{ video.id }}">[Open on YouTube]</a>
+                </div>
             </div>
             <hr>
             {% if let Some(text) = video.description -%}
