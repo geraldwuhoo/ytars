@@ -60,6 +60,9 @@ video {
         border-radius: 50%;
         margin-right: 0.5em;
     }
+    & a {
+        margin-right: 1px;
+    }
 }
 
 @media (prefers-color-scheme: dark) {

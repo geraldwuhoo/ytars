@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO video (id, title, filename, filestem, upload_date, duration_string, description, channel_id, video_type)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n                ON CONFLICT (id)\n                DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Text",
+        "Text",
+        "Text",
+        "Date",
+        "Text",
+        "Text",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "video_type",
+            "kind": {
+              "Enum": [
+                "video",
+                "short",
+                "stream"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e322128052ef08c4cdd37c11a9d20a80c869b3c99db68f30ff933fe8a2a00c62"
+}

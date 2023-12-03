@@ -14,7 +14,7 @@ use time::{macros::format_description, Date};
 
 use crate::{
     errors::YtarsError,
-    model::{ChannelModel, VideoJson},
+    model::{ChannelModel, VideoJson, VideoType},
 };
 
 #[derive(Debug, Deserialize)]
@@ -86,12 +86,19 @@ async fn populate_channel(
             .map(|description| description.replace('\u{0000}', ""));
         let short = (!video.duration_string.contains(':') || video.duration_string == "1:00")
             && video.aspect_ratio < 1.0;
+        let video_type = if short {
+            VideoType::Short
+        } else if video.was_live {
+            VideoType::Stream
+        } else {
+            VideoType::Video
+        };
         let format = format_description!("[year][month][day]");
         let date = Date::parse(&video.upload_date, &format)?;
 
         sqlx::query_as!(
             VideoModel,
-            r#"INSERT INTO video (id, title, filename, filestem, upload_date, duration_string, description, short, channel_id)
+            r#"INSERT INTO video (id, title, filename, filestem, upload_date, duration_string, description, channel_id, video_type)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (id)
                 DO NOTHING"#,
@@ -102,8 +109,8 @@ async fn populate_channel(
             date,
             duration_string,
             description,
-            short,
             video.channel_id,
+            video_type as VideoType,
         )
         .execute(pool)
         .await?;

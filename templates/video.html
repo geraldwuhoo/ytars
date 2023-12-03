@@ -11,15 +11,18 @@
             <a href="/">[ytars]</a>
             &gt;
             <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
-            {% if video.short -%}
-            &gt;
-            <a href="/shorts/{{ channel.id }}">Shorts</a>
-            {% endif -%}
             &gt;
             <a href="/watch?v={{ video.id }}">{{ video.title }}</a>
         </header>
         <main>
-            <video poster="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" width="{% if video.short %}50{% else %}100{% endif %}%" controls preload="none">
+            {% let width -%}
+            {% match video.video_type -%}
+                {% when VideoType::Short -%}
+                    {% let width = "50%" -%}
+                {% else -%}
+                    {% let width = "100%" -%}
+            {% endmatch -%}
+            <video poster="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" width="{{ width }}" controls preload="none">
                 <source src="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filename|urlencode }}" />
                 <track src="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.en.vtt" kind="subtitles" srclang="en" label="English" />
             </video>

@@ -3,3 +3,4 @@
 /.cargo
 docker-compose.yaml
 .env
+.vscode

@@ -10,7 +10,7 @@ use time::format_description;
 
 use crate::{
     errors::YtarsError,
-    model::{ChannelModel, VideoModel},
+    model::{ChannelModel, VideoModel, VideoType},
 };
 
 #[derive(Debug, Template)]
@@ -40,9 +40,24 @@ pub async fn yt_video_handler(
             .finish());
     }
 
-    let video = sqlx::query_as!(VideoModel, "SELECT * FROM video WHERE id = $1;", video_id,)
-        .fetch_one(pool.get_ref())
-        .await?;
+    let video = sqlx::query_as!(
+        VideoModel,
+        r#"SELECT
+            id,
+            title,
+            filename,
+            filestem,
+            upload_date,
+            duration_string,
+            description,
+            channel_id,
+            video_type AS "video_type: VideoType"
+        FROM video
+        WHERE id = $1;"#,
+        video_id
+    )
+    .fetch_one(pool.get_ref())
+    .await?;
     let channel = sqlx::query_as!(
         ChannelModel,
         "SELECT * FROM channel WHERE id = $1;",

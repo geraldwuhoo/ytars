@@ -14,7 +14,7 @@ use scan::scan_handler;
 use sqlx::postgres::PgPoolOptions;
 use std::sync::{atomic::AtomicBool, Arc};
 
-use crate::channel::{channel_handler, shorts_handler};
+use crate::channel::channel_handler;
 use crate::errors::YtarsError;
 use crate::feed::feed_handler;
 use crate::file::index_handler;
@@ -84,7 +84,6 @@ async fn main() -> Result<(), YtarsError> {
             .service(scan_handler)
             .service(feed_handler)
             .service(channel_handler)
-            .service(shorts_handler)
             .service(yt_video_handler)
             .service(index_handler)
             .service(ResourceFiles::new("/static", generated))

@@ -12,6 +12,18 @@ pub struct ChannelModel {
     pub description: Option<String>,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, sqlx::Type, Deserialize, Serialize)]
+#[sqlx(type_name = "video_type", rename_all = "lowercase")]
+pub enum VideoType {
+    Video,
+    Short,
+    Stream,
+}
+
+pub const fn _default_video_type() -> VideoType {
+    VideoType::Video
+}
+
 #[derive(Debug, sqlx::FromRow)]
 #[allow(non_snake_case)]
 pub struct VideoModel {
@@ -22,8 +34,8 @@ pub struct VideoModel {
     pub upload_date: Date,
     pub duration_string: String,
     pub description: Option<String>,
-    pub short: bool,
     pub channel_id: String,
+    pub video_type: VideoType,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -35,6 +47,19 @@ pub struct VideoJson {
     pub aspect_ratio: f32,
     pub description: Option<String>,
     pub channel_id: String,
+    #[serde(default)]
+    pub was_live: bool,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+#[allow(non_snake_case)]
+pub struct VideoListModel {
+    pub id: String,
+    pub title: String,
+    pub upload_date: Date,
+    pub duration_string: String,
+    pub channel_id: String,
+    pub video_type: VideoType,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -46,4 +71,5 @@ pub struct VideoChannelJoinModel {
     pub duration_string: String,
     pub channel_id: String,
     pub name: String,
+    pub video_type: VideoType,
 }

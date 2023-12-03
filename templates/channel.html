@@ -1,9 +1,18 @@
+{% let suffix -%}
+{% match video_type -%}
+    {% when VideoType::Short -%}
+        {% let suffix = " (Shorts)" -%}
+    {% when VideoType::Stream -%}
+        {% let suffix = " (Streams)" -%}
+    {% when VideoType::Video -%}
+        {% let suffix = "" -%}
+{% endmatch -%}
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ channel.name }}{% if shorts %} (Shorts){% endif %} | Ytars</title>
+        <title>{{ channel.name }}{{ suffix }} | Ytars</title>
         <link rel="stylesheet" type="text/css" href="/static/style.css">
     </head>
     <body>
@@ -11,15 +20,20 @@
             <a href="/">[ytars]</a>
             &gt;
             <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
-            {% if shorts -%}
+            {% match video_type -%}
+                {% when VideoType::Short -%}
             &gt;
             <a href="/shorts/{{ channel.id }}">Shorts</a>
-            {% endif -%}
+                {% when VideoType::Stream -%}
+            &gt;
+            <a href="/streams/{{ channel.id }}">Streams</a>
+                {% when VideoType::Video -%}
+            {% endmatch -%}
         </header>
         <main>
             <div style="margin-top: 1em" class="box">
                 <img class="pfp" width="100px" src="/files/{{ channel.sanitized_name|urlencode }}/{{ channel.sanitized_name|urlencode }}%20-%20Videos%20[{{ channel.id }}].jpg">
-                <h1>{{ channel.name }}{% if shorts %} (Shorts){% endif %}</h1>
+                <h1>{{ channel.name }}{{ suffix }}</h1>
             </div>
             {% if let Some(text) = channel.description -%}
             {{ text|markdown }}
@@ -27,7 +41,8 @@
             <p>{{ videos.len() }} videos</p>
             <div class="box">
                 <a href="/channel/{{ channel.id }}">[Videos]</a>
-                <a href="/shorts/{{ channel.id }}">[Shorts]</a>
+                <a href="/channel/{{ channel.id }}?video_type=Short">[Shorts]</a>
+                <a href="/channel/{{ channel.id }}?video_type=Stream">[Streams]</a>
                 <a class="right" href="https://www.youtube.com/channel/{{ channel.id }}">[Open on YouTube]</a>
             </div>
             <hr>

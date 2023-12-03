@@ -3,7 +3,10 @@ use askama::Template;
 use serde::Deserialize;
 use sqlx::PgPool;
 
-use crate::{errors::YtarsError, model::VideoChannelJoinModel};
+use crate::{
+    errors::YtarsError,
+    model::{VideoChannelJoinModel, VideoType, _default_video_type},
+};
 
 #[derive(Debug, Template)]
 #[template(path = "feed.html")]
@@ -14,7 +17,8 @@ struct FeedTemplate {
 #[derive(Debug, Deserialize)]
 pub struct FeedParams {
     count: Option<i64>,
-    shorts: Option<bool>,
+    #[serde(default = "_default_video_type")]
+    video_type: VideoType,
 }
 
 #[get("/feed")]
@@ -24,13 +28,20 @@ pub async fn feed_handler(
 ) -> Result<HttpResponse, YtarsError> {
     let videos = sqlx::query_as!(
         VideoChannelJoinModel,
-        "SELECT video.id, title, upload_date, duration_string, channel.id AS channel_id, channel.name
+        r#"SELECT
+            video.id,
+            title,
+            upload_date,
+            duration_string,
+            channel.id AS channel_id,
+            channel.name,
+            video_type AS "video_type: VideoType"
         FROM video
         INNER JOIN channel ON video.channel_id = channel.id
-        WHERE short = $1
+        WHERE video_type = $1
         ORDER BY upload_date DESC
-        LIMIT $2;",
-        params.shorts.unwrap_or(false),
+        LIMIT $2;"#,
+        params.video_type as VideoType,
         params.count.unwrap_or(100),
     )
     .fetch_all(pool.get_ref())

@@ -1,32 +1,46 @@
 use actix_web::{get, web, HttpResponse, Result};
 use askama::Template;
+use serde::Deserialize;
 use sqlx::PgPool;
 
 use crate::{
     errors::YtarsError,
-    model::{ChannelModel, VideoModel},
+    model::{ChannelModel, VideoListModel, VideoType, _default_video_type},
 };
 
 #[derive(Debug, Template)]
 #[template(path = "channel.html")]
 struct ChannelTemplate {
     channel: ChannelModel,
-    videos: Vec<VideoModel>,
-    shorts: bool,
+    videos: Vec<VideoListModel>,
+    video_type: VideoType,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChannelParams {
+    #[serde(default = "_default_video_type")]
+    video_type: VideoType,
 }
 
 async fn get_channel_page(
     channel_id: String,
-    shorts: bool,
+    video_type: VideoType,
     pool: &PgPool,
 ) -> Result<String, YtarsError> {
     let videos = sqlx::query_as!(
-        VideoModel,
-        "SELECT * FROM video
-        WHERE channel_id = $1 AND short = $2
-        ORDER BY upload_date DESC;",
+        VideoListModel,
+        r#"SELECT
+            id,
+            title,
+            upload_date,
+            duration_string,
+            channel_id,
+            video_type AS "video_type: VideoType"
+        FROM video
+        WHERE channel_id = $1 AND video_type = $2
+        ORDER BY upload_date DESC;"#,
         channel_id,
-        shorts,
+        video_type as VideoType,
     )
     .fetch_all(pool)
     .await?;
@@ -42,25 +56,17 @@ async fn get_channel_page(
     let ytchannel = ChannelTemplate {
         channel,
         videos,
-        shorts,
+        video_type,
     };
     Ok(ytchannel.render()?)
 }
 
-#[get("/shorts/{uri}")]
-pub async fn shorts_handler(
-    uri: web::Path<String>,
-    pool: web::Data<PgPool>,
-) -> Result<HttpResponse, YtarsError> {
-    let page = get_channel_page(uri.to_string(), true, &pool).await?;
-    Ok(HttpResponse::Ok().content_type("text/html").body(page))
-}
-
 #[get("/channel/{uri}")]
 pub async fn channel_handler(
+    params: web::Query<ChannelParams>,
     uri: web::Path<String>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
-    let page = get_channel_page(uri.to_string(), false, &pool).await?;
+    let page = get_channel_page(uri.to_string(), params.video_type, &pool).await?;
     Ok(HttpResponse::Ok().content_type("text/html").body(page))
 }
