@@ -33,38 +33,19 @@ video {
     margin-top: 1em;
 }
 
-.left {
-    float: left;
-}
-
-.right {
-    float: right;
-}
-
-.left-right {
-    overflow: auto;
-    align-items: center;
-}
-
-.clear {
-    clear: both;
-}
-
 .box {
     display: flex;
     align-items: center;
     & .right {
         margin-left: auto;
     }
-    & img {
-        border-radius: 50%;
-        margin-right: 0.5em;
-    }
-    & a {
-        margin-right: 0.1em;
-    }
-    & a.end {
-        margin-right: 0;
+    & .pfp {
+        display: flex;
+        align-items: center;
+        & img {
+            border-radius: 50%;
+            margin-right: 0.5em;
+        }
     }
 }
 

@@ -32,18 +32,24 @@
         </header>
         <main>
             <div style="margin-top: 1em" class="box">
-                <img width="100px" src="/files/{{ channel.sanitized_name|urlencode }}/{{ channel.sanitized_name|urlencode }}%20-%20Videos%20[{{ channel.id }}].jpg">
-                <h1>{{ channel.name }}{{ suffix }}</h1>
+                <div class="left pfp">
+                    <img width="100px" src="/files/{{ channel.sanitized_name|urlencode }}/{{ channel.sanitized_name|urlencode }}%20-%20Videos%20[{{ channel.id }}].jpg">
+                    <h1>{{ channel.name }}{{ suffix }}</h1>
+                </div>
             </div>
             {% if let Some(text) = channel.description -%}
             {{ text|markdown }}
             {% endif -%}
             <p>{{ videos.len() }} videos</p>
             <div class="box">
-                <a href="/channel/{{ channel.id }}">[Videos]</a>
-                <a href="/channel/{{ channel.id }}?video_type=Short">[Shorts]</a>
-                <a href="/channel/{{ channel.id }}?video_type=Stream">[Streams]</a>
-                <a class="end right" href="https://www.youtube.com/channel/{{ channel.id }}">[Open on YouTube]</a>
+                <div class="left">
+                    <a href="/channel/{{ channel.id }}">[Videos]</a>
+                    <a href="/channel/{{ channel.id }}?video_type=Short">[Shorts]</a>
+                    <a href="/channel/{{ channel.id }}?video_type=Stream">[Streams]</a>
+                </div>
+                <div class="right">
+                    <a href="https://www.youtube.com/channel/{{ channel.id }}">[Open on YouTube]</a>
+                </div>
             </div>
             <hr>
             <ul>
