@@ -16,9 +16,14 @@ struct FeedTemplate {
 
 #[derive(Debug, Deserialize)]
 pub struct FeedParams {
-    count: Option<i64>,
+    #[serde(default = "_default_count")]
+    count: i64,
     #[serde(default = "_default_video_type")]
     video_type: VideoType,
+}
+
+const fn _default_count() -> i64 {
+    100
 }
 
 #[get("/feed")]
@@ -42,7 +47,7 @@ pub async fn feed_handler(
         ORDER BY upload_date DESC
         LIMIT $2;"#,
         params.video_type as VideoType,
-        params.count.unwrap_or(100),
+        params.count,
     )
     .fetch_all(pool.get_ref())
     .await?;

@@ -15,10 +15,10 @@ use crate::{
 
 #[derive(Debug, Template)]
 #[template(path = "video.html")]
-struct VideoTemplate {
+struct VideoTemplate<'a> {
     video: VideoModel,
     channel: ChannelModel,
-    upload_date: String,
+    upload_date: &'a str,
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,7 +67,7 @@ pub async fn yt_video_handler(
     .await?;
 
     let format = format_description::parse("[month repr:long] [day padding:none], [year]")?;
-    let upload_date = video.upload_date.format(&format)?;
+    let upload_date = &video.upload_date.format(&format)?;
 
     let vid = VideoTemplate {
         video,
