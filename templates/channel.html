@@ -23,10 +23,10 @@
             {% match video_type -%}
                 {% when VideoType::Short -%}
             &gt;
-            <a href="/shorts/{{ channel.id }}">Shorts</a>
+            <a href="/channel/{{ channel.id }}?video_type=Short">Shorts</a>
                 {% when VideoType::Stream -%}
             &gt;
-            <a href="/streams/{{ channel.id }}">Streams</a>
+            <a href="/channel/{{ channel.id }}?video_type=Stream">Streams</a>
                 {% when VideoType::Video -%}
             {% endmatch -%}
         </header>
@@ -61,4 +61,5 @@
                 {% endfor -%}
             </ul>
         </main>
+    </body>
 </html>
