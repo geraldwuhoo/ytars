@@ -33,6 +33,34 @@ video {
     margin-top: 1em;
 }
 
+video.short {
+    width: 50%;
+}
+
+@media screen and (orientation: portrait) {
+    video.short {
+        width: 100%;
+    }
+}
+
+@media (max-width: 100em), (max-height: 60em) {
+    video.video {
+        width: 100%;
+    }
+}
+
+@media (min-width: 100em) and (min-height: 60em) {
+    video.video {
+        width: 150%;
+    }
+}
+
+@media (min-width: 150em) and (min-height: 75em) {
+    video.video {
+        width: 200%;
+    }
+}
+
 .box {
     display: flex;
     align-items: center;

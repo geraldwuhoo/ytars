@@ -24,17 +24,17 @@
             <a href="/watch?v={{ video.id }}">{{ video.title }}</a>
         </header>
         <main>
-            {% let width -%}
+            {% let class -%}
             {% match video.video_type -%}
                 {% when VideoType::Short -%}
-                    {% let width = "50%" -%}
+                    {% let class = "short" -%}
                 {% else -%}
-                    {% let width = "100%" -%}
+                    {% let class = "video" -%}
             {% endmatch -%}
             {% let encoded_channel = channel.sanitized_name|urlencode -%}
             {% let encoded_filename = video.filename|urlencode -%}
             {% let encoded_filestem = video.filestem|urlencode -%}
-            <video poster="/files/{{ encoded_channel }}/{{ encoded_filestem }}.webp" width="{{ width }}" controls preload="none">
+            <video class="{{ class }}" poster="/files/{{ encoded_channel }}/{{ encoded_filestem }}.webp" controls preload="none">
                 <source src="/files/{{ encoded_channel }}/{{ encoded_filename }}" />
                 <track src="/files/{{ encoded_channel }}/{{ encoded_filestem }}.en.vtt" kind="subtitles" srclang="en" label="English" />
             </video>
