@@ -63,6 +63,9 @@ video {
     & a {
         margin-right: 0.1em;
     }
+    & a.end {
+        margin-right: 0;
+    }
 }
 
 @media (prefers-color-scheme: dark) {
