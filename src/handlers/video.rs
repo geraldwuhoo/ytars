@@ -4,6 +4,7 @@ use actix_web::{
     web, HttpResponse, Result,
 };
 use askama::Template;
+use log::debug;
 use serde::Deserialize;
 use sqlx::PgPool;
 use time::format_description;
@@ -39,7 +40,7 @@ pub async fn yt_video_handler(
             .finish());
     };
 
-    let video = sqlx::query_as!(
+    let video = match sqlx::query_as!(
         VideoModel,
         r#"SELECT
             id,
@@ -56,7 +57,20 @@ pub async fn yt_video_handler(
         video_id
     )
     .fetch_one(pool.get_ref())
-    .await?;
+    .await
+    {
+        Ok(v) => v,
+        Err(e) => match e {
+            sqlx::error::Error::RowNotFound => {
+                debug!("Couldn't find video {}", video_id);
+                return Ok(HttpResponse::NotFound()
+                    .content_type("text/html")
+                    .body("404 Not Found"));
+            }
+            x => return Err(x.into()),
+        },
+    };
+
     let channel = sqlx::query_as!(
         ChannelModel,
         "SELECT * FROM channel WHERE id = $1;",
