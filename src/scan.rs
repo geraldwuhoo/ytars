@@ -5,6 +5,7 @@ use serde::Deserialize;
 use sqlx::PgPool;
 use std::{
     fs,
+    path::{Path, PathBuf},
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -28,12 +29,12 @@ const fn _default_false() -> bool {
 }
 
 async fn populate_channel(
-    path: &str,
+    path: &Path,
     sanitized_channel: String,
     overwrite: bool,
     pool: &PgPool,
 ) -> Result<(), YtarsError> {
-    let paths = fs::read_dir(format!("{}/{}", path, sanitized_channel))?
+    let paths = fs::read_dir(path.join(sanitized_channel))?
         .filter_map(|r| r.ok())
         .map(|r| r.path())
         .filter(|r| {
@@ -119,7 +120,7 @@ async fn populate_channel(
     Ok(())
 }
 
-async fn populate(path: &str, overwrite: bool, pool: &PgPool) -> Result<(), YtarsError> {
+async fn populate(path: &PathBuf, overwrite: bool, pool: &PgPool) -> Result<(), YtarsError> {
     if overwrite {
         debug!("Overwrite requested, deleting all existing data...");
         sqlx::query!("TRUNCATE TABLE video, channel")
@@ -151,11 +152,12 @@ async fn populate(path: &str, overwrite: bool, pool: &PgPool) -> Result<(), Ytar
             })?;
         debug!("Working on {}", channel_name);
 
-        let mut json_paths = glob(&format!(
-            "{}/{c}/{c} - Videos *.info.json",
-            path,
-            c = channel_name
-        ))?;
+        let mut json_paths = glob(
+            path.join(channel_name)
+                .join(format!("{} - Videos *.info.json", channel_name))
+                .to_str()
+                .ok_or_else(|| YtarsError::Other("Failed to create json glob path".to_string()))?,
+        )?;
 
         let json_path = json_paths.next().ok_or(YtarsError::Other(format!(
             "No results returned for glob {}",
@@ -189,7 +191,7 @@ async fn populate(path: &str, overwrite: bool, pool: &PgPool) -> Result<(), Ytar
 #[get("/scan")]
 pub async fn scan_handler(
     params: web::Query<ScanParams>,
-    video_path: web::Data<String>,
+    video_path: web::Data<PathBuf>,
     pool: web::Data<PgPool>,
     scanning: web::Data<Arc<AtomicBool>>,
 ) -> HttpResponse {

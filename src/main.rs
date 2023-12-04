@@ -12,6 +12,7 @@ use actix_web_static_files::ResourceFiles;
 use clap::Parser;
 use scan::scan_handler;
 use sqlx::postgres::PgPoolOptions;
+use std::path::Path;
 use std::sync::{atomic::AtomicBool, Arc};
 
 use crate::channel::channel_handler;
@@ -58,7 +59,7 @@ struct Args {
 #[actix_web::main]
 async fn main() -> Result<(), YtarsError> {
     let args = Args::parse();
-    let video_path = args.video_path;
+    let video_path = Path::new(&args.video_path).canonicalize()?;
     let scanning = Arc::new(AtomicBool::new(false));
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
