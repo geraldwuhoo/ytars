@@ -72,10 +72,8 @@ async fn populate_channel(
         }
 
         debug!("Working on {}", filestem);
-        let jsonpath = full_path.clone();
-        let jsonpath = jsonpath.with_extension("info.json");
-        let jsoncontents = fs::read_to_string(jsonpath)?;
-        let video = serde_json::from_str::<VideoJson>(&jsoncontents)?;
+        let jsoncontents = fs::read_to_string(full_path.clone().with_extension("info.json"))?;
+        let video: VideoJson = serde_json::from_str(&jsoncontents)?;
         let duration_string = if video.duration_string.contains(':') {
             video.duration_string.clone()
         } else {

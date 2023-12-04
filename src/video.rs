@@ -31,14 +31,13 @@ pub async fn yt_video_handler(
     params: web::Query<VideoParams>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
-    let video_id;
-    if let Some(id) = &params.v {
-        video_id = id;
+    let video_id = if let Some(id) = &params.v {
+        id
     } else {
         return Ok(HttpResponse::PermanentRedirect()
             .append_header((header::LOCATION, HeaderValue::from_static("/")))
             .finish());
-    }
+    };
 
     let video = sqlx::query_as!(
         VideoModel,
@@ -74,7 +73,7 @@ pub async fn yt_video_handler(
         channel,
         upload_date,
     };
-    let vid = vid.render()?;
-
-    Ok(HttpResponse::Ok().content_type("text/html").body(vid))
+    Ok(HttpResponse::Ok()
+        .content_type("text/html")
+        .body(vid.render()?))
 }

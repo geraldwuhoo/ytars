@@ -17,7 +17,7 @@ pub async fn home_handler(pool: web::Data<PgPool>) -> Result<HttpResponse, Ytars
         .await?;
 
     let home = HomeTemplate { channels };
-    let home_page = home.render()?;
-
-    Ok(HttpResponse::Ok().content_type("text/html").body(home_page))
+    Ok(HttpResponse::Ok()
+        .content_type("text/html")
+        .body(home.render()?))
 }

@@ -22,11 +22,14 @@ pub struct ChannelParams {
     video_type: VideoType,
 }
 
-async fn get_channel_page(
-    channel_id: String,
-    video_type: VideoType,
-    pool: &PgPool,
-) -> Result<String, YtarsError> {
+#[get("/channel/{uri}")]
+pub async fn channel_handler(
+    params: web::Query<ChannelParams>,
+    uri: web::Path<String>,
+    pool: web::Data<PgPool>,
+) -> Result<HttpResponse, YtarsError> {
+    let channel_id = uri.to_string();
+    let video_type = params.video_type;
     let videos = sqlx::query_as!(
         VideoListModel,
         r#"SELECT
@@ -42,7 +45,7 @@ async fn get_channel_page(
         channel_id,
         video_type as VideoType,
     )
-    .fetch_all(pool)
+    .fetch_all(pool.as_ref())
     .await?;
 
     let channel = sqlx::query_as!(
@@ -50,7 +53,7 @@ async fn get_channel_page(
         "SELECT * FROM channel WHERE id = $1;",
         channel_id,
     )
-    .fetch_one(pool)
+    .fetch_one(pool.as_ref())
     .await?;
 
     let ytchannel = ChannelTemplate {
@@ -58,15 +61,7 @@ async fn get_channel_page(
         videos,
         video_type,
     };
-    Ok(ytchannel.render()?)
-}
-
-#[get("/channel/{uri}")]
-pub async fn channel_handler(
-    params: web::Query<ChannelParams>,
-    uri: web::Path<String>,
-    pool: web::Data<PgPool>,
-) -> Result<HttpResponse, YtarsError> {
-    let page = get_channel_page(uri.to_string(), params.video_type, &pool).await?;
-    Ok(HttpResponse::Ok().content_type("text/html").body(page))
+    Ok(HttpResponse::Ok()
+        .content_type("text/html")
+        .body(ytchannel.render()?))
 }
