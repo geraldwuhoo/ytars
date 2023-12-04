@@ -41,7 +41,7 @@
             <h1>{{ video.title }}</h1>
             <h4>{{ upload_date }}</h4>
             <div class="box">
-                <img class="pfp" width="50px" src="/files/{{ encoded_channel }}/{{ encoded_channel }}%20-%20Videos%20[{{ channel.id }}].jpg">
+                <img width="50px" src="/files/{{ encoded_channel }}/{{ encoded_channel }}%20-%20Videos%20[{{ channel.id }}].jpg">
                 <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
                 <div class="right">
                     <a href="/files/{{ encoded_channel }}/{{ encoded_filename }}" download>[Download]</a><a target="_blank" href="https://www.youtube.com/watch?v={{ video.id }}">[Open on YouTube]</a>
