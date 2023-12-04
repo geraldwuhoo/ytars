@@ -2,7 +2,7 @@ use actix_web::{get, web, HttpResponse, Result};
 use askama::Template;
 use sqlx::PgPool;
 
-use crate::{errors::YtarsError, model::ChannelModel};
+use crate::structures::{errors::YtarsError, model::ChannelModel};
 
 #[derive(Debug, Template)]
 #[template(path = "home.html")]

@@ -5,7 +5,7 @@ use actix_web::{get, web, HttpRequest, HttpResponse, Result};
 use log::debug;
 use serde::Deserialize;
 
-use crate::errors::YtarsError;
+use crate::structures::errors::YtarsError;
 
 #[derive(Deserialize)]
 struct Info {

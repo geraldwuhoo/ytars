@@ -13,7 +13,7 @@ use std::{
 };
 use time::{macros::format_description, Date};
 
-use crate::{
+use crate::structures::{
     errors::YtarsError,
     model::{ChannelModel, VideoJson, VideoType},
 };

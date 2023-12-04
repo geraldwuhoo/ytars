@@ -8,7 +8,7 @@ use serde::Deserialize;
 use sqlx::PgPool;
 use time::format_description;
 
-use crate::{
+use crate::structures::{
     errors::YtarsError,
     model::{ChannelModel, VideoModel, VideoType},
 };

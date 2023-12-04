@@ -1,26 +1,22 @@
-mod channel;
-mod errors;
-mod feed;
-mod file;
-mod home;
-mod model;
-mod scan;
-mod video;
+mod handlers;
+mod structures;
 
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_static_files::ResourceFiles;
 use clap::Parser;
-use scan::scan_handler;
 use sqlx::postgres::PgPoolOptions;
-use std::path::Path;
-use std::sync::{atomic::AtomicBool, Arc};
+use std::{
+    path::Path,
+    sync::{atomic::AtomicBool, Arc},
+};
 
-use crate::channel::channel_handler;
-use crate::errors::YtarsError;
-use crate::feed::feed_handler;
-use crate::file::index_handler;
-use crate::home::home_handler;
-use crate::video::yt_video_handler;
+use crate::{
+    handlers::{
+        channel::channel_handler, feed::feed_handler, file::index_handler, home::home_handler,
+        scan::scan_handler, video::yt_video_handler,
+    },
+    structures::errors::YtarsError,
+};
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 

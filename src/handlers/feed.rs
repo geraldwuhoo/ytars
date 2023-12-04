@@ -3,7 +3,7 @@ use askama::Template;
 use serde::Deserialize;
 use sqlx::PgPool;
 
-use crate::{
+use crate::structures::{
     errors::YtarsError,
     model::{VideoChannelJoinModel, VideoType, _default_video_type},
 };
