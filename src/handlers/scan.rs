@@ -33,7 +33,7 @@ async fn populate_channel(
     sanitized_channel: String,
     overwrite: bool,
     pool: &PgPool,
-) -> Result<(), YtarsError> {
+) -> Result<(u32, u32), YtarsError> {
     let paths = fs::read_dir(path.join(sanitized_channel))?
         .filter_map(|r| r.ok())
         .map(|r| r.path())
@@ -43,6 +43,7 @@ async fn populate_channel(
                     || r.extension().unwrap_or_default() == "mp4")
         });
 
+    let (mut all_count, mut scan_count) = (0u32, 0u32);
     for full_path in paths {
         let filename = full_path
             .file_name()
@@ -60,6 +61,7 @@ async fn populate_channel(
                 YtarsError::Other(format!("Failed to convert to str file {:?}", full_path))
             })?
             .to_string();
+        all_count += 1;
 
         if !overwrite {
             let video = sqlx::query!("SELECT filestem FROM video WHERE filestem = $1;", filestem)
@@ -113,12 +115,18 @@ async fn populate_channel(
         )
         .execute(pool)
         .await?;
+
+        scan_count += 1;
     }
 
-    Ok(())
+    Ok((scan_count, all_count))
 }
 
-async fn populate(path: &PathBuf, overwrite: bool, pool: &PgPool) -> Result<(), YtarsError> {
+async fn populate(
+    path: &PathBuf,
+    overwrite: bool,
+    pool: &PgPool,
+) -> Result<(u32, u32), YtarsError> {
     if overwrite {
         debug!("Overwrite requested, deleting all existing data...");
         sqlx::query!("TRUNCATE TABLE video, channel")
@@ -132,6 +140,7 @@ async fn populate(path: &PathBuf, overwrite: bool, pool: &PgPool) -> Result<(), 
         .map(|r| r.path())
         .filter(|r| r.is_dir());
 
+    let (mut all_count, mut scan_count) = (0u32, 0u32);
     for channel_path in channels {
         let channel_name = channel_path
             .file_name()
@@ -178,12 +187,13 @@ async fn populate(path: &PathBuf, overwrite: bool, pool: &PgPool) -> Result<(), 
         .execute(pool)
         .await?;
 
-        populate_channel(path, channel_name.to_string(), overwrite, pool).await?;
+        let (channel_scan_count, channel_all_count) =
+            populate_channel(path, channel_name.to_string(), overwrite, pool).await?;
+        scan_count += channel_scan_count;
+        all_count += channel_all_count;
     }
 
-    debug!("Done populating postgres with video catalog");
-
-    Ok(())
+    Ok((scan_count, all_count))
 }
 
 #[get("/scan")]
@@ -197,7 +207,6 @@ pub async fn scan_handler(
     let status;
     if scanning.load(Ordering::Acquire) {
         status = "Already running a scan, please wait until complete";
-        info!("{}", status);
     } else {
         status = if overwrite {
             "Force scan started"
@@ -205,16 +214,17 @@ pub async fn scan_handler(
             "Scan started"
         };
         actix_web::rt::spawn(async move {
-            info!("{}{}", status, if overwrite { " (overwrite)" } else { "" });
             scanning.store(true, Ordering::Release);
-            if let Err(e) = populate(&video_path, overwrite, &pool).await {
-                info!("Error scanning: {}", e);
-            } else {
-                info!("Finished scan");
-            }
+            match populate(&video_path, overwrite, &pool).await {
+                Ok((scan_count, all_count)) => {
+                    info!("Finished scan: {} added, {} scanned", scan_count, all_count)
+                }
+                Err(e) => info!("Error scanning: {}", e),
+            };
             scanning.store(false, Ordering::Release);
         });
     }
+    info!("{}", status);
 
     HttpResponse::Ok().body(status)
 }
