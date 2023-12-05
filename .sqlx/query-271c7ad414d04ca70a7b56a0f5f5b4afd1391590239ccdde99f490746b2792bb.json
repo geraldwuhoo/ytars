@@ -1,0 +1,69 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n            video.id,\n            title,\n            upload_date,\n            duration_string,\n            channel.id AS channel_id,\n            channel.name,\n            video_type AS \"video_type: VideoType\"\n        FROM video\n        INNER JOIN channel ON video.channel_id = channel.id\n        WHERE document @@ plainto_tsquery($1)\n        ORDER BY ts_rank(document, plainto_tsquery($1)) DESC\n        LIMIT 100;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "upload_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 3,
+        "name": "duration_string",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "channel_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "video_type: VideoType",
+        "type_info": {
+          "Custom": {
+            "name": "video_type",
+            "kind": {
+              "Enum": [
+                "video",
+                "short",
+                "stream"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "271c7ad414d04ca70a7b56a0f5f5b4afd1391590239ccdde99f490746b2792bb"
+}
