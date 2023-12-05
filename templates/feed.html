@@ -1,3 +1,12 @@
+{% let suffix -%}
+{% match video_type -%}
+    {% when VideoType::Short -%}
+        {% let suffix = " (Shorts)" -%}
+    {% when VideoType::Stream -%}
+        {% let suffix = " (Streams)" -%}
+    {% when VideoType::Video -%}
+        {% let suffix = "" -%}
+{% endmatch -%}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -11,9 +20,18 @@
             <a href="/">[ytars]</a>
             &gt;
             <a href="/feed">feed</a>
+            {% match video_type -%}
+                {% when VideoType::Short -%}
+            &gt;
+            <a href="/feed?video_type=Short">Shorts</a>
+                {% when VideoType::Stream -%}
+            &gt;
+            <a href="/feed?video_type=Stream">Streams</a>
+                {% when VideoType::Video -%}
+            {% endmatch -%}
         </header>
         <main>
-            <h1>Feed</h1>
+            <h1>Feed{{ suffix }}</h1>
             <div class="box">
                 <div class="left">
                     <a href="/feed">[Videos]</a>
@@ -29,7 +47,7 @@
             <ul>
                 {% for video in videos -%}
                 <li class="video">
-                    <a href="/watch?v={{ video.id }}">{{ video.title }}</a> ({{ video.duration_string }})<br>
+                    <a href="/watch?v={{ video.id }}&feed=true">{{ video.title }}</a> ({{ video.duration_string }})<br>
                     <a href="/channel/{{ video.channel_id }}">{{ video.name }}</a><br>
                     {{ video.upload_date }}
                 </li>

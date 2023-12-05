@@ -10,18 +10,24 @@
         <header>
             <a href="/">[ytars]</a>
             &gt;
-            <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
+            {% let path -%}
+            {% if feed -%}
+                {% let path = "/feed" -%}
+            {% else -%}
+                {% let path = "/channel/{{ channel.id }}" -%}
+            {% endif -%}
+            <a href="{{ path }}">{% if feed %}feed{% else %}{{ channel.name }}{% endif %}</a>
             {% match video.video_type -%}
                 {% when VideoType::Short -%}
             &gt;
-            <a href="/channel/{{ channel.id }}?video_type=Short">Shorts</a>
+            <a href="{{ path }}?video_type=Short">Shorts</a>
                 {% when VideoType::Stream -%}
             &gt;
-            <a href="/channel/{{ channel.id }}?video_type=Stream">Streams</a>
+            <a href="{{ path }}?video_type=Stream">Streams</a>
                 {% when VideoType::Video -%}
             {% endmatch -%}
             &gt;
-            <a href="/watch?v={{ video.id }}">{{ video.title }}</a>
+            <a href="/watch?v={{ video.id }}{% if feed %}&feed=true{% endif %}">{{ video.title }}</a>
         </header>
         <main>
             {% let class -%}

@@ -5,13 +5,15 @@ use sqlx::PgPool;
 
 use crate::structures::{
     errors::YtarsError,
-    model::{VideoChannelJoinModel, VideoType, _default_video_type},
+    model::{VideoChannelJoinModel, VideoType},
+    util::{_default_count, _default_video_type},
 };
 
 #[derive(Debug, Template)]
 #[template(path = "feed.html")]
 struct FeedTemplate {
     videos: Vec<VideoChannelJoinModel>,
+    video_type: VideoType,
 }
 
 #[derive(Debug, Deserialize)]
@@ -22,15 +24,12 @@ pub struct FeedParams {
     video_type: VideoType,
 }
 
-const fn _default_count() -> i64 {
-    100
-}
-
 #[get("/feed")]
 pub async fn feed_handler(
     params: web::Query<FeedParams>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
+    let video_type = params.video_type;
     let videos = sqlx::query_as!(
         VideoChannelJoinModel,
         r#"SELECT
@@ -46,13 +45,13 @@ pub async fn feed_handler(
         WHERE video_type = $1
         ORDER BY upload_date DESC
         LIMIT $2;"#,
-        params.video_type as VideoType,
+        video_type as VideoType,
         params.count,
     )
     .fetch_all(pool.get_ref())
     .await?;
 
-    let ytchannel = FeedTemplate { videos };
+    let ytchannel = FeedTemplate { videos, video_type };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
         .body(ytchannel.render()?))

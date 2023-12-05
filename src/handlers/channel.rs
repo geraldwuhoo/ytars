@@ -5,7 +5,8 @@ use sqlx::PgPool;
 
 use crate::structures::{
     errors::YtarsError,
-    model::{ChannelModel, VideoListModel, VideoType, _default_video_type},
+    model::{ChannelModel, VideoListModel, VideoType},
+    util::_default_video_type,
 };
 
 #[derive(Debug, Template)]

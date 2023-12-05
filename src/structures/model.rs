@@ -20,10 +20,6 @@ pub enum VideoType {
     Stream,
 }
 
-pub const fn _default_video_type() -> VideoType {
-    VideoType::Video
-}
-
 #[derive(Debug, sqlx::FromRow)]
 #[allow(non_snake_case)]
 pub struct VideoModel {

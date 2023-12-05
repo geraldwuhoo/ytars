@@ -12,6 +12,7 @@ use time::format_description;
 use crate::structures::{
     errors::YtarsError,
     model::{ChannelModel, VideoModel, VideoType},
+    util::_default_false,
 };
 
 #[derive(Debug, Template)]
@@ -20,11 +21,14 @@ struct VideoTemplate<'a> {
     video: VideoModel,
     channel: ChannelModel,
     upload_date: &'a str,
+    feed: bool,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct VideoParams {
     v: Option<String>,
+    #[serde(default = "_default_false")]
+    feed: bool,
 }
 
 #[get("/watch")]
@@ -86,6 +90,7 @@ pub async fn yt_video_handler(
         video,
         channel,
         upload_date,
+        feed: params.feed,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")

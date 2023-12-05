@@ -16,16 +16,13 @@ use time::{macros::format_description, Date};
 use crate::structures::{
     errors::YtarsError,
     model::{ChannelModel, VideoJson, VideoType},
+    util::_default_false,
 };
 
 #[derive(Debug, Deserialize)]
 pub struct ScanParams {
     #[serde(default = "_default_false")]
     overwrite: bool,
-}
-
-const fn _default_false() -> bool {
-    false
 }
 
 async fn populate_channel(
