@@ -1,4 +1,4 @@
-use actix_web::{get, web, HttpResponse, Result};
+use actix_web::{post, web, HttpResponse, Result};
 use askama::Template;
 use serde::Deserialize;
 use sqlx::PgPool;
@@ -20,9 +20,9 @@ pub struct SearchParams {
     query: String,
 }
 
-#[get("/search")]
+#[post("/search")]
 pub async fn search_handler(
-    params: web::Query<SearchParams>,
+    params: web::Form<SearchParams>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
     let query = &params.query;

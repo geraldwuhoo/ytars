@@ -17,18 +17,27 @@
     </head>
     <body>
         <header>
-            <a href="/">[ytars]</a>
-            &gt;
-            <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
-            {% match video_type -%}
-                {% when VideoType::Short -%}
-            &gt;
-            <a href="/channel/{{ channel.id }}?video_type=Short">Shorts</a>
-                {% when VideoType::Stream -%}
-            &gt;
-            <a href="/channel/{{ channel.id }}?video_type=Stream">Streams</a>
-                {% when VideoType::Video -%}
-            {% endmatch -%}
+            <div class="box">
+                <div class="left">
+                    <a href="/">[ytars]</a>
+                    &gt;
+                    <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
+                    {% match video_type -%}
+                        {% when VideoType::Short -%}
+                    &gt;
+                    <a href="/channel/{{ channel.id }}?video_type=Short">Shorts</a>
+                        {% when VideoType::Stream -%}
+                    &gt;
+                    <a href="/channel/{{ channel.id }}?video_type=Stream">Streams</a>
+                        {% when VideoType::Video -%}
+                    {% endmatch -%}
+                </div>
+                <div class="right search">
+                    <form action="/search" method="post">
+                        <input type="text" id="query" name="query" placeholder="Search">
+                    </form>
+                </div>
+            </div>
         </header>
         <main>
             <div style="margin-top: 1em" class="box">

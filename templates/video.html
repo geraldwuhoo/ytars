@@ -8,26 +8,35 @@
     </head>
     <body>
         <header>
-            <a href="/">[ytars]</a>
-            &gt;
-            {% let path -%}
-            {% if feed -%}
-                {% let path = "/feed" -%}
-            {% else -%}
-                {% let path = "/channel/{{ channel.id }}" -%}
-            {% endif -%}
-            <a href="{{ path }}">{% if feed %}feed{% else %}{{ channel.name }}{% endif %}</a>
-            {% match video.video_type -%}
-                {% when VideoType::Short -%}
-            &gt;
-            <a href="{{ path }}?video_type=Short">Shorts</a>
-                {% when VideoType::Stream -%}
-            &gt;
-            <a href="{{ path }}?video_type=Stream">Streams</a>
-                {% when VideoType::Video -%}
-            {% endmatch -%}
-            &gt;
-            <a href="/watch?v={{ video.id }}{% if feed %}&feed=true{% endif %}">{{ video.title }}</a>
+            <div class="box">
+                <div class="left">
+                    <a href="/">[ytars]</a>
+                    &gt;
+                    {% let path -%}
+                    {% if feed -%}
+                        {% let path = "/feed" -%}
+                    {% else -%}
+                        {% let path = "/channel/{{ channel.id }}" -%}
+                    {% endif -%}
+                    <a href="{{ path }}">{% if feed %}feed{% else %}{{ channel.name }}{% endif %}</a>
+                    {% match video.video_type -%}
+                        {% when VideoType::Short -%}
+                    &gt;
+                    <a href="{{ path }}?video_type=Short">Shorts</a>
+                        {% when VideoType::Stream -%}
+                    &gt;
+                    <a href="{{ path }}?video_type=Stream">Streams</a>
+                        {% when VideoType::Video -%}
+                    {% endmatch -%}
+                    &gt;
+                    <a href="/watch?v={{ video.id }}{% if feed %}&feed=true{% endif %}">{{ video.title }}</a>
+                </div>
+                <div class="right search">
+                    <form action="/search" method="post">
+                        <input type="text" id="query" name="query" placeholder="Search">
+                    </form>
+                </div>
+            </div>
         </header>
         <main>
             {% let class -%}
