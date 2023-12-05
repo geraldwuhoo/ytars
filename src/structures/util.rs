@@ -1,7 +1,7 @@
 use super::model::VideoType;
 
 pub const fn _default_false() -> bool {
-    return false
+    false
 }
 
 pub const fn _default_count() -> i64 {
