@@ -40,7 +40,7 @@ video.short {
 
 @media screen and (orientation: portrait) {
     video.short {
-        width: 100%;
+        width: 85%;
     }
 }
 
