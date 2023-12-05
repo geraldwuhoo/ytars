@@ -6,30 +6,27 @@ use sqlx::PgPool;
 use crate::structures::{
     errors::YtarsError,
     model::{VideoChannelJoinModel, VideoType},
-    util::{_default_count, _default_video_type},
 };
 
 #[derive(Debug, Template)]
-#[template(path = "feed.html")]
-struct FeedTemplate {
+#[template(path = "search.html")]
+struct SearchTemplate<'a> {
     videos: Vec<VideoChannelJoinModel>,
-    video_type: VideoType,
+    query: &'a str,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct FeedParams {
-    #[serde(default = "_default_count")]
-    count: i64,
-    #[serde(default = "_default_video_type")]
-    video_type: VideoType,
+pub struct SearchParams {
+    query: String,
 }
 
-#[get("/feed")]
-pub async fn feed_handler(
-    params: web::Query<FeedParams>,
+#[get("/search")]
+pub async fn search_handler(
+    params: web::Query<SearchParams>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
-    let video_type = params.video_type;
+    let query = &params.query;
+    println!("{}", query);
     let videos = sqlx::query_as!(
         VideoChannelJoinModel,
         r#"SELECT
@@ -42,17 +39,16 @@ pub async fn feed_handler(
             video_type AS "video_type: VideoType"
         FROM video
         INNER JOIN channel ON video.channel_id = channel.id
-        WHERE video_type = $1
-        ORDER BY upload_date DESC
-        LIMIT $2;"#,
-        video_type as VideoType,
-        params.count,
+        WHERE document @@ plainto_tsquery($1)
+        ORDER BY ts_rank(document, plainto_tsquery($1)) DESC
+        LIMIT 100;"#,
+        query,
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(pool.as_ref())
     .await?;
 
-    let feed = FeedTemplate { videos, video_type };
+    let search = SearchTemplate { videos, query };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
-        .body(feed.render()?))
+        .body(search.render()?))
 }
