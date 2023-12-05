@@ -12,11 +12,9 @@
                 <div class="left">
                     <a href="/">[ytars]</a>
                     &gt;
-                    {% let path -%}
+                    {% let path = "/channel/{}"|format(channel.id) -%}
                     {% if feed -%}
                         {% let path = "/feed" -%}
-                    {% else -%}
-                        {% let path = "/channel/{{ channel.id }}" -%}
                     {% endif -%}
                     <a href="{{ path }}">{% if feed %}feed{% else %}{{ channel.name }}{% endif %}</a>
                     {% match video.video_type -%}

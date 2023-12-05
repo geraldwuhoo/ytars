@@ -1,5 +1,6 @@
 use actix_web::{post, web, HttpResponse, Result};
 use askama::Template;
+use log::debug;
 use serde::Deserialize;
 use sqlx::PgPool;
 
@@ -26,7 +27,7 @@ pub async fn search_handler(
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
     let query = &params.query;
-    println!("{}", query);
+    debug!("Search query: {}", query);
     let videos = sqlx::query_as!(
         VideoChannelJoinModel,
         r#"SELECT
