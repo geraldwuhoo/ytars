@@ -32,7 +32,7 @@
                     <a href="/watch?v={{ video.id }}{% if feed %}&feed=true{% endif %}">{{ video.title }}</a>
                 </div>
                 <div class="right search">
-                    <form action="/search" method="post">
+                    <form action="/search" method="get">
                         <input type="text" id="query" name="query" placeholder="Search">
                     </form>
                 </div>

@@ -15,7 +15,7 @@
                     <a href="/search">search</a>
                 </div>
                 <div class="right search">
-                    <form action="/search" method="post">
+                    <form action="/search" method="get">
                         <input type="text" id="query" name="query" placeholder="Search">
                     </form>
                 </div>
@@ -23,7 +23,9 @@
         </header>
         <main>
             <h1>Search</h1>
+            {% if let Some(query) = query -%}
             Results for &#39;{{ query }}&#39;
+            {% endif -%}
             <hr>
             <ul>
                 {% for video in videos -%}
