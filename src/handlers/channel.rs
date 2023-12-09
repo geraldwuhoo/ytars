@@ -17,10 +17,23 @@ struct ChannelTemplate {
     video_type: VideoType,
 }
 
+#[derive(Copy, Clone, Debug, Deserialize)]
+enum Sort {
+    Latest,
+    Popular,
+    Oldest,
+}
+
+const fn _default_sort_type() -> Sort {
+    Sort::Latest
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ChannelParams {
     #[serde(default = "_default_video_type")]
     video_type: VideoType,
+    #[serde(default = "_default_sort_type")]
+    sort: Sort,
 }
 
 #[get("/channel/{uri}")]
@@ -31,24 +44,71 @@ pub async fn channel_handler(
 ) -> Result<HttpResponse, YtarsError> {
     let channel_id = uri.to_string();
     let video_type = params.video_type;
-    let videos = sqlx::query_as!(
-        VideoListModel,
-        r#"SELECT
-            id,
-            title,
-            upload_date,
-            duration_string,
-            channel_id,
-            video_type AS "video_type: VideoType",
-            view_count
-        FROM video
-        WHERE channel_id = $1 AND video_type = $2
-        ORDER BY upload_date DESC;"#,
-        channel_id,
-        video_type as VideoType,
-    )
-    .fetch_all(pool.as_ref())
-    .await?;
+    let videos = match params.sort {
+        Sort::Latest => {
+            sqlx::query_as!(
+                VideoListModel,
+                r#"SELECT
+                id,
+                title,
+                upload_date,
+                duration_string,
+                channel_id,
+                video_type AS "video_type: VideoType",
+                view_count
+            FROM video
+            WHERE channel_id = $1 AND video_type = $2
+            ORDER BY upload_date
+            DESC;"#,
+                channel_id,
+                video_type as VideoType,
+            )
+            .fetch_all(pool.as_ref())
+            .await?
+        }
+        Sort::Popular => {
+            sqlx::query_as!(
+                VideoListModel,
+                r#"SELECT
+                id,
+                title,
+                upload_date,
+                duration_string,
+                channel_id,
+                video_type AS "video_type: VideoType",
+                view_count
+            FROM video
+            WHERE channel_id = $1 AND video_type = $2
+            ORDER BY view_count
+            DESC;"#,
+                channel_id,
+                video_type as VideoType,
+            )
+            .fetch_all(pool.as_ref())
+            .await?
+        }
+        Sort::Oldest => {
+            sqlx::query_as!(
+                VideoListModel,
+                r#"SELECT
+                id,
+                title,
+                upload_date,
+                duration_string,
+                channel_id,
+                video_type AS "video_type: VideoType",
+                view_count
+            FROM video
+            WHERE channel_id = $1 AND video_type = $2
+            ORDER BY upload_date
+            ASC;"#,
+                channel_id,
+                video_type as VideoType,
+            )
+            .fetch_all(pool.as_ref())
+            .await?
+        }
+    };
 
     let channel = sqlx::query_as!(
         ChannelModel,

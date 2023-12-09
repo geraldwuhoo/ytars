@@ -11,3 +11,6 @@ ALTER TABLE video
 DROP COLUMN IF EXISTS view_count;
 ALTER TABLE video
 ADD COLUMN view_count bigint DEFAULT 0 NOT NULL;
+
+DROP INDEX IF EXISTS video_view_count_idx;
+CREATE INDEX video_view_count_idx ON video (view_count);

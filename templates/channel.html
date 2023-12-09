@@ -1,15 +1,19 @@
 {% let suffix -%}
 {% let tab -%}
+{% let video_type_param -%}
 {% match video_type -%}
     {% when VideoType::Short -%}
         {% let suffix = " (Shorts)" -%}
         {% let tab = "shorts" -%}
+        {% let video_type_param = "Short" -%}
     {% when VideoType::Stream -%}
         {% let suffix = " (Streams)" -%}
         {% let tab = "streams" -%}
+        {% let video_type_param = "Stream" -%}
     {% when VideoType::Video -%}
         {% let suffix = "" -%}
         {% let tab = "videos" -%}
+        {% let video_type_param = "Video" -%}
 {% endmatch -%}
 <!DOCTYPE html>
 <html lang="en">
@@ -68,6 +72,12 @@
                 </div>
             </div>
             <hr>
+            <div>
+                <a href="/channel/{{ channel.id }}?video_type={{ video_type_param }}&sort=Latest">[Latest]</a>
+                <a href="/channel/{{ channel.id }}?video_type={{ video_type_param }}&sort=Popular">[Popular]</a>
+                <a href="/channel/{{ channel.id }}?video_type={{ video_type_param }}&sort=Oldest">[Oldest]</a>
+            </div>
+            <p>
             <ul>
                 {% for video in videos -%}
                 <li class="video">

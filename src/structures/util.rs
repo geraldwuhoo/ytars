@@ -18,12 +18,11 @@ fn truncate(num: f64) -> f64 {
     let significant_digits = 3;
 
     if num_integ.len() == significant_digits {
-        return num.trunc()
-    }
-    else {
-        let decimals = significant_digits - num_integ.len() + 2 as usize;
+        num.trunc()
+    } else {
+        let decimals = significant_digits - num_integ.len() + 2_usize;
         let combined_number: f64 = (num_integ + "." + &num_fract[2..decimals]).parse().unwrap();
-        return combined_number
+        combined_number
     }
 }
 
