@@ -1,11 +1,15 @@
 {% let suffix -%}
+{% let tab -%}
 {% match video_type -%}
     {% when VideoType::Short -%}
         {% let suffix = " (Shorts)" -%}
+        {% let tab = "shorts" -%}
     {% when VideoType::Stream -%}
         {% let suffix = " (Streams)" -%}
+        {% let tab = "streams" -%}
     {% when VideoType::Video -%}
         {% let suffix = "" -%}
+        {% let tab = "videos" -%}
 {% endmatch -%}
 <!DOCTYPE html>
 <html lang="en">
@@ -45,11 +49,14 @@
                     <img width="100px" src="/files/{{ channel.sanitized_name|urlencode }}/{{ channel.sanitized_name|urlencode }}%20-%20Videos%20[{{ channel.id }}].jpg">
                     <h1>{{ channel.name }}{{ suffix }}</h1>
                 </div>
+                <div class="right subscribers">
+                    {{ crate::structures::util::follower_count_to_string(channel.channel_follower_count) }} subscribers<br>
+                    {{ videos.len() }} {{ tab }}
+                </div>
             </div>
             {% if let Some(text) = channel.description -%}
             {{ text|markdown }}
             {% endif -%}
-            <p>{{ videos.len() }} videos</p>
             <div class="box">
                 <div class="left">
                     <a href="/channel/{{ channel.id }}">[Videos]</a>

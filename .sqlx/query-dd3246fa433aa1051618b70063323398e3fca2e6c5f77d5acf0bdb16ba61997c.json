@@ -22,6 +22,11 @@
         "ordinal": 3,
         "name": "description",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "channel_follower_count",
+        "type_info": "Int4"
       }
     ],
     "parameters": {
@@ -31,7 +36,8 @@
       false,
       false,
       false,
-      true
+      true,
+      false
     ]
   },
   "hash": "dd3246fa433aa1051618b70063323398e3fca2e6c5f77d5acf0bdb16ba61997c"

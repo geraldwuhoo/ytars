@@ -99,7 +99,16 @@ async fn populate_channel(
             r#"INSERT INTO video (id, title, filename, filestem, upload_date, duration_string, description, channel_id, video_type)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (id)
-                DO NOTHING"#,
+                DO UPDATE
+                SET
+                    title=$2,
+                    filename=$3,
+                    filestem=$4,
+                    upload_date=$5,
+                    duration_string=$6,
+                    description=$7,
+                    channel_id=$8,
+                    video_type=$9"#,
             video.id,
             video.title,
             filename,
@@ -172,14 +181,20 @@ async fn populate(
 
         sqlx::query_as!(
             ChannelModel,
-            r#"INSERT INTO channel (id, name, sanitized_name, description)
-                VALUES ($1, $2, $3, $4)
+            r#"INSERT INTO channel (id, name, sanitized_name, description, channel_follower_count)
+                VALUES ($1, $2, $3, $4, $5)
                 ON CONFLICT (id)
-                DO NOTHING"#,
+                DO UPDATE
+                SET
+                    name=$2,
+                    sanitized_name=$3,
+                    description=$4,
+                    channel_follower_count=$5"#,
             yt_channel.id,
             yt_channel.name,
             channel_name,
             yt_channel.description,
+            yt_channel.channel_follower_count,
         )
         .execute(pool)
         .await?;

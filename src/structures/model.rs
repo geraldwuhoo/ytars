@@ -10,6 +10,8 @@ pub struct ChannelModel {
     #[serde(skip_deserializing)]
     pub sanitized_name: String,
     pub description: Option<String>,
+    #[serde(default)]
+    pub channel_follower_count: i32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, sqlx::Type, Deserialize, Serialize)]

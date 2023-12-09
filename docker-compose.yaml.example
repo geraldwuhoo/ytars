@@ -2,7 +2,8 @@ version: '2'
 
 services:
   ytars:
-    image: ytars
+    build:
+      context: .
     restart: unless-stopped
     environment:
       POSTGRES_USERNAME: ytars

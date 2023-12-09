@@ -53,6 +53,9 @@ video.short {
         & .right {
             margin: 0.5em auto 0 0;
         }
+        & .subscribers {
+            text-align: left;
+        }
     }
 }
 
@@ -64,6 +67,9 @@ video.short {
         flex-direction: row;
         & .right {
             margin: 0 0 0 auto;
+        }
+        & .subscribers {
+            text-align: right;
         }
     }
 }
