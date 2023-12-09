@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n            id,\n            title,\n            filename,\n            filestem,\n            upload_date,\n            duration_string,\n            description,\n            channel_id,\n            video_type AS \"video_type: VideoType\"\n        FROM video\n        WHERE id = $1;",
+  "query": "SELECT\n                video.id,\n                title,\n                upload_date,\n                duration_string,\n                channel.id AS channel_id,\n                channel.name,\n                video_type AS \"video_type: VideoType\",\n                view_count\n            FROM video\n            INNER JOIN channel ON video.channel_id = channel.id\n            WHERE document @@ plainto_tsquery($1)\n            ORDER BY ts_rank(document, plainto_tsquery($1)) DESC\n            LIMIT 100;",
   "describe": {
     "columns": [
       {
@@ -15,36 +15,26 @@
       },
       {
         "ordinal": 2,
-        "name": "filename",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 3,
-        "name": "filestem",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 4,
         "name": "upload_date",
         "type_info": "Date"
       },
       {
-        "ordinal": 5,
+        "ordinal": 3,
         "name": "duration_string",
         "type_info": "Text"
       },
       {
-        "ordinal": 6,
-        "name": "description",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 7,
+        "ordinal": 4,
         "name": "channel_id",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 8,
+        "ordinal": 5,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
         "name": "video_type: VideoType",
         "type_info": {
           "Custom": {
@@ -58,6 +48,11 @@
             }
           }
         }
+      },
+      {
+        "ordinal": 7,
+        "name": "view_count",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
@@ -72,10 +67,9 @@
       false,
       false,
       false,
-      true,
       false,
       false
     ]
   },
-  "hash": "baf348014cc6dfe93b3c358b5122093270780146dd9b1a882076dd88cf72e145"
+  "hash": "53d53767d25efc84b61b7feea55789b0a289cf873a607f5f90a7a57858c2c66f"
 }

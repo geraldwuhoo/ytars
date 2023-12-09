@@ -34,6 +34,7 @@ pub struct VideoModel {
     pub description: Option<String>,
     pub channel_id: String,
     pub video_type: VideoType,
+    pub view_count: i64,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -47,6 +48,8 @@ pub struct VideoJson {
     pub channel_id: String,
     #[serde(default)]
     pub was_live: bool,
+    #[serde(default)]
+    pub view_count: i64,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -58,6 +61,7 @@ pub struct VideoListModel {
     pub duration_string: String,
     pub channel_id: String,
     pub video_type: VideoType,
+    pub view_count: i64,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -70,4 +74,5 @@ pub struct VideoChannelJoinModel {
     pub channel_id: String,
     pub name: String,
     pub video_type: VideoType,
+    pub view_count: i64,
 }

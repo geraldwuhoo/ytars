@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n                video.id,\n                title,\n                upload_date,\n                duration_string,\n                channel.id AS channel_id,\n                channel.name,\n                video_type AS \"video_type: VideoType\"\n            FROM video\n            INNER JOIN channel ON video.channel_id = channel.id\n            WHERE document @@ plainto_tsquery($1)\n            ORDER BY ts_rank(document, plainto_tsquery($1)) DESC\n            LIMIT 100;",
+  "query": "SELECT\n            video.id,\n            title,\n            upload_date,\n            duration_string,\n            channel.id AS channel_id,\n            channel.name,\n            video_type AS \"video_type: VideoType\",\n            view_count\n        FROM video\n        INNER JOIN channel ON video.channel_id = channel.id\n        WHERE video_type = $1\n        ORDER BY upload_date DESC\n        LIMIT $2;",
   "describe": {
     "columns": [
       {
@@ -48,11 +48,28 @@
             }
           }
         }
+      },
+      {
+        "ordinal": 7,
+        "name": "view_count",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
       "Left": [
-        "Text"
+        {
+          "Custom": {
+            "name": "video_type",
+            "kind": {
+              "Enum": [
+                "video",
+                "short",
+                "stream"
+              ]
+            }
+          }
+        },
+        "Int8"
       ]
     },
     "nullable": [
@@ -62,8 +79,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "59374986ed69e0c4bf3ef41ece9eda1a014af3c3dc67a4dad5c1681a41e12d8c"
+  "hash": "7f762bedafc2d8b77326a38544532823730a3be5a2fa821fa1b659c2c8fab810"
 }

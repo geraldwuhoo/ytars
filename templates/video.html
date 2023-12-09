@@ -54,7 +54,11 @@
                 <track src="/files/{{ encoded_channel }}/{{ encoded_filestem }}.en.vtt" kind="subtitles" srclang="en" label="English" />
             </video>
             <h1>{{ video.title }}</h1>
-            <h4>{{ upload_date }}</h4>
+            <h4>
+                {{ crate::structures::util::view_count_to_string(video.view_count) }} views
+                &middot;
+                {{ upload_date }}
+            </h4>
             <div class="box">
                 <div class="left pfp">
                     <img width="50px" src="/files/{{ encoded_channel }}/{{ encoded_channel }}%20-%20Videos%20[{{ channel.id }}].jpg">

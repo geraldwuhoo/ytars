@@ -39,7 +39,8 @@ pub async fn feed_handler(
             duration_string,
             channel.id AS channel_id,
             channel.name,
-            video_type AS "video_type: VideoType"
+            video_type AS "video_type: VideoType",
+            view_count
         FROM video
         INNER JOIN channel ON video.channel_id = channel.id
         WHERE video_type = $1

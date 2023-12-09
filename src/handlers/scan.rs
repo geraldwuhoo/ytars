@@ -96,8 +96,8 @@ async fn populate_channel(
 
         sqlx::query_as!(
             VideoModel,
-            r#"INSERT INTO video (id, title, filename, filestem, upload_date, duration_string, description, channel_id, video_type)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            r#"INSERT INTO video (id, title, filename, filestem, upload_date, duration_string, description, channel_id, video_type, view_count)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (id)
                 DO UPDATE
                 SET
@@ -108,7 +108,8 @@ async fn populate_channel(
                     duration_string=$6,
                     description=$7,
                     channel_id=$8,
-                    video_type=$9"#,
+                    video_type=$9,
+                    view_count=$10"#,
             video.id,
             video.title,
             filename,
@@ -118,6 +119,7 @@ async fn populate_channel(
             description,
             video.channel_id,
             video_type as VideoType,
+            video.view_count,
         )
         .execute(pool)
         .await?;

@@ -39,7 +39,8 @@ pub async fn channel_handler(
             upload_date,
             duration_string,
             channel_id,
-            video_type AS "video_type: VideoType"
+            video_type AS "video_type: VideoType",
+            view_count
         FROM video
         WHERE channel_id = $1 AND video_type = $2
         ORDER BY upload_date DESC;"#,

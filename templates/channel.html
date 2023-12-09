@@ -73,6 +73,8 @@
                 <li class="video">
                     <a href="/watch?v={{ video.id }}">{{ video.title }}</a> ({{ video.duration_string }})<br>
                     {{ video.upload_date }}
+                    &middot;
+                    {{ crate::structures::util::view_count_to_string(video.view_count) }} views
                 </li>
                 {% endfor -%}
             </ul>

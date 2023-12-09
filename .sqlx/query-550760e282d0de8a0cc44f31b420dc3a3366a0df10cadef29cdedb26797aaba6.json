@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n            id,\n            title,\n            upload_date,\n            duration_string,\n            channel_id,\n            video_type AS \"video_type: VideoType\"\n        FROM video\n        WHERE channel_id = $1 AND video_type = $2\n        ORDER BY upload_date DESC;",
+  "query": "SELECT\n            id,\n            title,\n            filename,\n            filestem,\n            upload_date,\n            duration_string,\n            description,\n            channel_id,\n            video_type AS \"video_type: VideoType\",\n            view_count\n        FROM video\n        WHERE id = $1;",
   "describe": {
     "columns": [
       {
@@ -15,21 +15,36 @@
       },
       {
         "ordinal": 2,
-        "name": "upload_date",
-        "type_info": "Date"
+        "name": "filename",
+        "type_info": "Text"
       },
       {
         "ordinal": 3,
-        "name": "duration_string",
+        "name": "filestem",
         "type_info": "Text"
       },
       {
         "ordinal": 4,
+        "name": "upload_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 5,
+        "name": "duration_string",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
         "name": "channel_id",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 5,
+        "ordinal": 8,
         "name": "video_type: VideoType",
         "type_info": {
           "Custom": {
@@ -43,23 +58,16 @@
             }
           }
         }
+      },
+      {
+        "ordinal": 9,
+        "name": "view_count",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
       "Left": [
-        "Text",
-        {
-          "Custom": {
-            "name": "video_type",
-            "kind": {
-              "Enum": [
-                "video",
-                "short",
-                "stream"
-              ]
-            }
-          }
-        }
+        "Text"
       ]
     },
     "nullable": [
@@ -68,8 +76,12 @@
       false,
       false,
       false,
+      false,
+      true,
+      false,
+      false,
       false
     ]
   },
-  "hash": "373ddf0189afe28baaa004cf7ee92f0956c83a2a5fb946e09632a40ab39dd1f5"
+  "hash": "550760e282d0de8a0cc44f31b420dc3a3366a0df10cadef29cdedb26797aaba6"
 }

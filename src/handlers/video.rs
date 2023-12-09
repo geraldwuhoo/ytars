@@ -55,7 +55,8 @@ pub async fn yt_video_handler(
             duration_string,
             description,
             channel_id,
-            video_type AS "video_type: VideoType"
+            video_type AS "video_type: VideoType",
+            view_count
         FROM video
         WHERE id = $1;"#,
         video_id
