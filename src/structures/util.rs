@@ -1,3 +1,5 @@
+use log::debug;
+
 use super::model::VideoType;
 
 pub const fn _default_false() -> bool {
@@ -13,11 +15,14 @@ pub const fn _default_video_type() -> VideoType {
 }
 
 fn truncate(num: f64) -> f64 {
+    debug!("got num to truncate: {}", num);
     let num_integ = num.trunc().to_string();
     let num_fract = num.fract().to_string();
     let significant_digits = 3;
 
-    if num_integ.len() == significant_digits {
+    if (num_integ.len() < 3 && num_fract == "0") || num_integ.len() + num_fract.len() < 3 {
+        num
+    } else if num_integ.len() == significant_digits {
         num.trunc()
     } else {
         let decimals = significant_digits - num_integ.len() + 2_usize;
@@ -27,6 +32,7 @@ fn truncate(num: f64) -> f64 {
 }
 
 pub fn follower_count_to_string(count: &i32) -> String {
+    debug!("follower count: {}", count);
     if *count < 100 {
         count.to_string()
     } else if count / 1_000_000 > 0 {
@@ -39,6 +45,7 @@ pub fn follower_count_to_string(count: &i32) -> String {
 }
 
 pub fn view_count_to_string(count: &i64) -> String {
+    debug!("view count: {}", count);
     if *count < 100 {
         count.to_string()
     } else if count / 1_000_000 > 0 {
