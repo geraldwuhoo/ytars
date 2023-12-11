@@ -23,4 +23,6 @@ RUN cargo build --release --target x86_64-unknown-linux-musl --bin ytars
 # Clean image
 FROM scratch
 COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/ytars /usr/bin/ytars
+COPY --from=builder /usr/lib/ssl/ /usr/local/ssl/
+COPY --from=builder /etc/ssl/ /etc/ssl/
 ENTRYPOINT ["ytars"]
