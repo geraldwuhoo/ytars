@@ -1,4 +1,5 @@
 use actix_web::{get, web, HttpResponse, Result};
+use askama::Template;
 use glob::glob;
 use log::{debug, info};
 use serde::Deserialize;
@@ -15,7 +16,7 @@ use time::{macros::format_description, Date};
 
 use crate::structures::{
     errors::YtarsError,
-    model::{ChannelModel, VideoJson, VideoType},
+    model::{ChannelModel, VideoJson, VideoLikesDislikes, VideoType},
     util::_default_false,
 };
 
@@ -23,6 +24,70 @@ use crate::structures::{
 pub struct ScanParams {
     #[serde(default = "_default_false")]
     overwrite: bool,
+    #[serde(default = "_default_false")]
+    dislikes: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct LikesDislikes {
+    likes: Option<i32>,
+    dislikes: Option<i32>,
+}
+
+#[derive(Debug, Template)]
+#[template(path = "scan.html")]
+struct ScanTemplate<'a> {
+    status: &'a str,
+}
+
+async fn get_dislikes(pool: &PgPool) -> Result<(u32, u32), YtarsError> {
+    let videos = sqlx::query_as!(
+        VideoLikesDislikes,
+        r#"SELECT
+            id,
+            likes,
+            dislikes
+        FROM video"#,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let all_count = videos.len() as u32;
+    let mut pull_count: u32 = 0;
+
+    for video in videos {
+        if video.likes.is_none() && video.dislikes.is_none() {
+            pull_count += 1;
+            info!(
+                "Getting dislikes for {} ({} of {})",
+                video.id, pull_count, all_count
+            );
+
+            let url = format!("https://ryd-proxy.kavin.rocks/votes/{}", video.id);
+            let response = reqwest::get(&url).await?;
+            let likes_dislikes = response.json::<LikesDislikes>().await?;
+            debug!("likes_dislikes: {:?}", likes_dislikes);
+
+            sqlx::query_as!(
+                VideoLikesDislikes,
+                r#"UPDATE video
+                SET likes=$1, dislikes=$2
+                WHERE id=$3"#,
+                likes_dislikes.likes.unwrap_or_else(|| 0),
+                likes_dislikes.dislikes.unwrap_or_else(|| 0),
+                video.id,
+            )
+            .execute(pool)
+            .await?;
+        } else {
+            debug!(
+                "skipping {}, (likes: {:?}, dislikes: {:?})",
+                video.id, video.likes, video.dislikes
+            );
+        }
+    }
+
+    Ok((pull_count, all_count))
 }
 
 async fn populate_channel(
@@ -40,7 +105,7 @@ async fn populate_channel(
                     || r.extension().unwrap_or_default() == "mp4")
         });
 
-    let (mut all_count, mut scan_count) = (0u32, 0u32);
+    let (mut scan_count, mut all_count) = (0u32, 0u32);
     for full_path in paths {
         let filename = full_path
             .file_name()
@@ -96,7 +161,18 @@ async fn populate_channel(
 
         sqlx::query_as!(
             VideoModel,
-            r#"INSERT INTO video (id, title, filename, filestem, upload_date, duration_string, description, channel_id, video_type, view_count)
+            r#"INSERT INTO video (
+                id,
+                title,
+                filename,
+                filestem,
+                upload_date,
+                duration_string,
+                description,
+                channel_id,
+                video_type,
+                view_count
+            )
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (id)
                 DO UPDATE
@@ -148,7 +224,7 @@ async fn populate(
         .map(|r| r.path())
         .filter(|r| r.is_dir());
 
-    let (mut all_count, mut scan_count) = (0u32, 0u32);
+    let (mut scan_count, mut all_count) = (0u32, 0u32);
     for channel_path in channels {
         let channel_name = channel_path
             .file_name()
@@ -216,7 +292,7 @@ pub async fn scan_handler(
     video_path: web::Data<PathBuf>,
     pool: web::Data<PgPool>,
     scanning: web::Data<Arc<AtomicBool>>,
-) -> HttpResponse {
+) -> Result<HttpResponse, YtarsError> {
     let overwrite = params.overwrite;
     let status;
     if scanning.load(Ordering::Acquire) {
@@ -235,10 +311,24 @@ pub async fn scan_handler(
                 }
                 Err(e) => info!("Error scanning: {}", e),
             };
+            if params.dislikes {
+                match get_dislikes(&pool).await {
+                    Ok((pull_count, all_count)) => {
+                        info!(
+                            "Finished dislikes: {} added, {} scanned",
+                            pull_count, all_count
+                        )
+                    }
+                    Err(e) => info!("Error scanning: {}", e),
+                }
+            }
             scanning.store(false, Ordering::Release);
         });
     }
     info!("{}", status);
 
-    HttpResponse::Ok().body(status)
+    let scan = ScanTemplate { status };
+    Ok(HttpResponse::Ok()
+        .content_type("text/html")
+        .body(scan.render()?))
 }

@@ -55,9 +55,21 @@
             </video>
             <h1>{{ video.title }}</h1>
             <h4>
-                {{ crate::structures::util::view_count_to_string(video.view_count) }} views
-                &middot;
-                {{ upload_date }}
+                <div class="box">
+                    <div class="left">
+                        {{ crate::structures::util::view_count_to_string(video.view_count) }} views
+                        &middot;
+                        {{ upload_date }}
+                    </div>
+                    <div class="right">
+                        {% if let Some(likes) = video.likes -%}
+                        {{ crate::structures::util::follower_count_to_string(likes) }} &#x25B4;
+                        {% endif -%}
+                        {% if let Some(dislikes) = video.dislikes -%}
+                        {{ crate::structures::util::follower_count_to_string(dislikes) }} &#x25BE;
+                        {% endif -%}
+                    </div>
+                </div>
             </h4>
             <div class="box">
                 <div class="left pfp">

@@ -35,6 +35,8 @@ pub struct VideoModel {
     pub channel_id: String,
     pub video_type: VideoType,
     pub view_count: i64,
+    pub likes: Option<i32>,
+    pub dislikes: Option<i32>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -50,6 +52,14 @@ pub struct VideoJson {
     pub was_live: bool,
     #[serde(default)]
     pub view_count: i64,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+#[allow(non_snake_case)]
+pub struct VideoLikesDislikes {
+    pub id: String,
+    pub likes: Option<i32>,
+    pub dislikes: Option<i32>,
 }
 
 #[derive(Debug, sqlx::FromRow)]

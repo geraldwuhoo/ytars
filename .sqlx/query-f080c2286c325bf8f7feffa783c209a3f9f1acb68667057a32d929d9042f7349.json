@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n            id,\n            title,\n            filename,\n            filestem,\n            upload_date,\n            duration_string,\n            description,\n            channel_id,\n            video_type AS \"video_type: VideoType\",\n            view_count\n        FROM video\n        WHERE id = $1;",
+  "query": "SELECT\n            id,\n            title,\n            filename,\n            filestem,\n            upload_date,\n            duration_string,\n            description,\n            channel_id,\n            video_type AS \"video_type: VideoType\",\n            view_count,\n            likes,\n            dislikes\n        FROM video\n        WHERE id = $1;",
   "describe": {
     "columns": [
       {
@@ -63,6 +63,16 @@
         "ordinal": 9,
         "name": "view_count",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 10,
+        "name": "likes",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "dislikes",
+        "type_info": "Int4"
       }
     ],
     "parameters": {
@@ -80,8 +90,10 @@
       true,
       false,
       false,
-      false
+      false,
+      true,
+      true
     ]
   },
-  "hash": "550760e282d0de8a0cc44f31b420dc3a3366a0df10cadef29cdedb26797aaba6"
+  "hash": "f080c2286c325bf8f7feffa783c209a3f9f1acb68667057a32d929d9042f7349"
 }

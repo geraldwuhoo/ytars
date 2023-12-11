@@ -63,7 +63,7 @@ for channel in data:
         # 1. webm compatible: 4320p > 2160p > 1440p > 1080p > 720p, AV1 > VP9, HFR preferred, OPUS
         # 2. mp4 compatible: 1080p and lower, H264, M4A
         # To avoid .mkv files (mainly h264 + opus), which cannot be played in the browser
-        "format": '(571/402/272/701/401/315/313/700/400/308/271/699/399/303/248/698/398/302/247)+bestaudio[acodec=opus]/bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]',
+        "format": '(571/402/272/701/401/315/313/700/400/308/271/699/399/303/248/698/398/302/247)+bestaudio[acodec=opus]/bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
     }
     with YoutubeDL(ydl_opts) as ydl:
         print(f"Downloading: {name} ({url})")

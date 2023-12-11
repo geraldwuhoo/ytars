@@ -1,4 +1,3 @@
-use actix_web::error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -33,8 +32,11 @@ pub enum YtarsError {
     #[error("time format error\n{0}")]
     TimeFormatError(#[from] time::error::Format),
 
+    #[error("reqwest error\n{0}")]
+    ParseError(#[from] reqwest::Error),
+
     #[error("other error\n{0}")]
     Other(String),
 }
 
-impl error::ResponseError for YtarsError {}
+impl actix_web::error::ResponseError for YtarsError {}

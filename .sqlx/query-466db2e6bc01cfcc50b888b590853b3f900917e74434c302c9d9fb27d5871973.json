@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n            id,\n            likes,\n            dislikes\n        FROM video",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "likes",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "dislikes",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "466db2e6bc01cfcc50b888b590853b3f900917e74434c302c9d9fb27d5871973"
+}
