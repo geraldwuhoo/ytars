@@ -19,8 +19,9 @@ fn truncate(num: f64) -> f64 {
     let num_integ = num.trunc().to_string();
     let num_fract = num.fract().to_string();
     let significant_digits = 3;
+    debug!("integ: {}, fract: {}", num_integ, num_fract);
 
-    if (num_integ.len() < 3 && num_fract == "0") || num_integ.len() + num_fract.len() < 3 {
+    if (num_integ.len() < 3 && num_fract == "0") || num_integ.len() + num_fract.len() < 5 {
         num
     } else if num_integ.len() == significant_digits {
         num.trunc()
