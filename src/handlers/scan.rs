@@ -32,6 +32,7 @@ pub struct ScanParams {
 
 #[derive(Debug, Deserialize)]
 struct LikesDislikes {
+    #[serde(skip_deserializing)]
     id: String,
     likes: Option<i32>,
     dislikes: Option<i32>,
@@ -68,7 +69,9 @@ async fn get_all_dislikes(pool: &PgPool) -> Result<u32, YtarsError> {
             async move {
                 let url = format!("https://ryd-proxy.kavin.rocks/votes/{}", video.id);
                 let response = client.get(&url).send().await?;
-                Ok::<LikesDislikes, YtarsError>(response.json::<LikesDislikes>().await?)
+                let mut rs = response.json::<LikesDislikes>().await?;
+                rs.id = video.id;
+                Ok::<LikesDislikes, YtarsError>(rs)
             }
         })
         .buffer_unordered(10)
@@ -136,7 +139,7 @@ async fn populate_channel(
             }
         }
 
-        info!("Working on {} ({})", filestem, scan_count);
+        info!("Working on {}", filestem);
         let jsoncontents = fs::read_to_string(full_path.clone().with_extension("info.json"))?;
         let video: VideoJson = serde_json::from_str(&jsoncontents)?;
         let duration_string = if video.duration_string.contains(':') {
