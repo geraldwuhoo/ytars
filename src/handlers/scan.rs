@@ -1,7 +1,9 @@
 use actix_web::{get, web, HttpResponse, Result};
 use askama::Template;
+use futures::{stream, StreamExt, TryStreamExt};
 use glob::glob;
 use log::{debug, info};
+use reqwest::Client;
 use serde::Deserialize;
 use sqlx::PgPool;
 use std::{
@@ -30,6 +32,7 @@ pub struct ScanParams {
 
 #[derive(Debug, Deserialize)]
 struct LikesDislikes {
+    id: String,
     likes: Option<i32>,
     dislikes: Option<i32>,
 }
@@ -40,7 +43,7 @@ struct ScanTemplate<'a> {
     status: &'a str,
 }
 
-async fn get_dislikes(pool: &PgPool) -> Result<(u32, u32), YtarsError> {
+async fn get_all_dislikes(pool: &PgPool) -> Result<u32, YtarsError> {
     let videos = sqlx::query_as!(
         VideoLikesDislikes,
         r#"SELECT
@@ -50,24 +53,26 @@ async fn get_dislikes(pool: &PgPool) -> Result<(u32, u32), YtarsError> {
         FROM video"#,
     )
     .fetch_all(pool)
-    .await?;
+    .await?
+    .into_iter()
+    .filter(|video| video.likes.is_none() && video.dislikes.is_none());
 
-    let all_count = videos.len() as u32;
     let mut pull_count: u32 = 0;
 
-    for video in videos {
-        if video.likes.is_none() && video.dislikes.is_none() {
+    let client = Client::new();
+    stream::iter(videos)
+        .map(|video| {
             pull_count += 1;
-            info!(
-                "Getting dislikes for {} ({} of {})",
-                video.id, pull_count, all_count
-            );
-
-            let url = format!("https://ryd-proxy.kavin.rocks/votes/{}", video.id);
-            let response = reqwest::get(&url).await?;
-            let likes_dislikes = response.json::<LikesDislikes>().await?;
-            debug!("likes_dislikes: {:?}", likes_dislikes);
-
+            info!("Getting dislikes for {} ({})", video.id, pull_count);
+            let client = &client;
+            async move {
+                let url = format!("https://ryd-proxy.kavin.rocks/votes/{}", video.id);
+                let response = client.get(&url).send().await?;
+                Ok::<LikesDislikes, YtarsError>(response.json::<LikesDislikes>().await?)
+            }
+        })
+        .buffer_unordered(10)
+        .try_for_each(|likes_dislikes| async move {
             sqlx::query_as!(
                 VideoLikesDislikes,
                 r#"UPDATE video
@@ -75,19 +80,15 @@ async fn get_dislikes(pool: &PgPool) -> Result<(u32, u32), YtarsError> {
                 WHERE id=$3"#,
                 likes_dislikes.likes.unwrap_or_else(|| 0),
                 likes_dislikes.dislikes.unwrap_or_else(|| 0),
-                video.id,
+                likes_dislikes.id,
             )
             .execute(pool)
             .await?;
-        } else {
-            debug!(
-                "skipping {}, (likes: {:?}, dislikes: {:?})",
-                video.id, video.likes, video.dislikes
-            );
-        }
-    }
+            Ok(())
+        })
+        .await?;
 
-    Ok((pull_count, all_count))
+    Ok(pull_count)
 }
 
 async fn populate_channel(
@@ -312,12 +313,9 @@ pub async fn scan_handler(
                 Err(e) => info!("Error scanning: {}", e),
             };
             if params.dislikes {
-                match get_dislikes(&pool).await {
-                    Ok((pull_count, all_count)) => {
-                        info!(
-                            "Finished dislikes: {} added, {} scanned",
-                            pull_count, all_count
-                        )
+                match get_all_dislikes(&pool).await {
+                    Ok(pull_count) => {
+                        info!("Finished dislikes: {} added", pull_count)
                     }
                     Err(e) => info!("Error scanning: {}", e),
                 }
