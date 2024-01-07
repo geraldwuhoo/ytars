@@ -52,7 +52,7 @@ variables:
 .build_binary:gnu:
   extends: .build_binary
   script:
-    - cargo install --target x86_64-unknown-linux-gnu --path .
+    - cargo install --locked --target x86_64-unknown-linux-gnu --path .
     - mv -v ${CARGO_HOME}/bin/${CI_PROJECT_NAME} ${CI_PROJECT_NAME}_x86_64-unknown-linux-gnu
   cache:
     key: gnu
@@ -66,7 +66,7 @@ variables:
     - rustup target add x86_64-unknown-linux-musl
     - apt update
     - apt install -y musl-tools musl-dev
-    - cargo install --target x86_64-unknown-linux-musl --path .
+    - cargo install --locked --target x86_64-unknown-linux-musl --path .
     - mv -v ${CARGO_HOME}/bin/${CI_PROJECT_NAME} ${CI_PROJECT_NAME}_x86_64-unknown-linux-musl
   cache:
     key: musl
