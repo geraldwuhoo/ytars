@@ -12,7 +12,7 @@ actix-web-static-files = "4.0.1"
 askama = { version = "0.12.1", features = ["markdown"] }
 clap = { version = "4.4.11", features = ["derive", "env"] }
 env_logger = "0.10.1"
-futures = "0.3.29"
+futures = "0.3.30"
 glob = "0.3.1"
 log = "0.4.20"
 reqwest = { version = "0.11.23", features = ["json"] }
