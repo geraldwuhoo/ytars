@@ -309,12 +309,6 @@ pub async fn scan_handler(
         };
         actix_web::rt::spawn(async move {
             scanning.store(true, Ordering::Release);
-            match populate(&video_path, overwrite, &pool).await {
-                Ok((scan_count, all_count)) => {
-                    info!("Finished scan: {} added, {} scanned", scan_count, all_count)
-                }
-                Err(e) => info!("Error scanning: {}", e),
-            };
             if params.dislikes {
                 match get_all_dislikes(&pool).await {
                     Ok(pull_count) => {
@@ -322,6 +316,13 @@ pub async fn scan_handler(
                     }
                     Err(e) => info!("Error scanning: {}", e),
                 }
+            } else {
+                match populate(&video_path, overwrite, &pool).await {
+                    Ok((scan_count, all_count)) => {
+                        info!("Finished scan: {} added, {} scanned", scan_count, all_count)
+                    }
+                    Err(e) => info!("Error scanning: {}", e),
+                };
             }
             scanning.store(false, Ordering::Release);
         });
