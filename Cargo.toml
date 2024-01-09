@@ -38,5 +38,5 @@ opt-level = 3
 codegen-units = 1
 
 [target.'cfg(all(target_env = "musl", target_pointer_width = "64"))'.dependencies]
-openssl = { version = "0.10.61", features = ["vendored"] }
+openssl = { version = "0.10.62", features = ["vendored"] }
 jemallocator = "0.5.4"
