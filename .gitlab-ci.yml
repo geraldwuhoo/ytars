@@ -15,22 +15,28 @@ variables:
   DOCKERIO_MIRROR: hub.wuhoo.xyz
   CARGO_HOME: ${CI_PROJECT_DIR}/.cargo
 
+.cache:
+  cache:
+    untracked: false
+    paths:
+      - .cargo/.crates.toml
+      - .cargo/.crates2.json
+      - .cargo/bin/
+      - .cargo/registry/index/
+      - .cargo/registry/cache/
+      - target/
+
 .lint:
+  extends: .cache
   stage: lint
   image: docker.io/library/rust:1.75.0
   before_script:
     - cargo version
     - rustup component add clippy
     - rustup component add rustfmt
-  cache:
-    untracked: true
-    paths:
-      - .cargo/bin/
-      - .cargo/registry/index/
-      - .cargo/registry/cache/
-      - target/
 
 .build_binary:
+  extends: .cache
   stage: build
   image: docker.io/library/rust:1.75.0
   needs: &build_needs
@@ -38,13 +44,6 @@ variables:
     - lint:format
   before_script:
     - cargo version
-  cache:
-    untracked: true
-    paths:
-      - .cargo/bin/
-      - .cargo/registry/index/
-      - .cargo/registry/cache/
-      - target/
   artifacts:
     untracked: false
     expire_in: 7 days
