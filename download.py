@@ -50,7 +50,6 @@ for channel in data:
         "outtmpl": {"default": f"{args.path}/{name}/%(title)s [%(id)s].%(ext)s"},
         "writedescription": True,
         "writeinfojson": True,
-        "writeannotations": True,
         "writethumbnail": True,
         "writesubtitles": True,
         "writeautomaticsub": True,
