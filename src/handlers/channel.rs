@@ -1,4 +1,4 @@
-use actix_web::{get, web, HttpResponse, Result};
+use actix_web::{get, web, HttpRequest, HttpResponse, Result};
 use askama::Template;
 use serde::Deserialize;
 use sqlx::PgPool;
@@ -6,7 +6,7 @@ use sqlx::PgPool;
 use crate::structures::{
     errors::YtarsError,
     model::{ChannelModel, VideoListModel, VideoType},
-    util::_default_video_type,
+    util::{_default_video_type, get_show_thumbnails},
 };
 
 #[derive(Debug, Template)]
@@ -15,6 +15,7 @@ struct ChannelTemplate {
     channel: ChannelModel,
     videos: Vec<VideoListModel>,
     video_type: VideoType,
+    show_thumbnails: bool,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize)]
@@ -38,10 +39,12 @@ pub struct ChannelParams {
 
 #[get("/channel/{uri}")]
 pub async fn channel_handler(
+    req: HttpRequest,
     params: web::Query<ChannelParams>,
     uri: web::Path<String>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
+    let show_thumbnails = get_show_thumbnails(&req)?;
     let channel_id = uri.to_string();
     let video_type = params.video_type;
     let videos = match params.sort {
@@ -55,7 +58,8 @@ pub async fn channel_handler(
                 duration_string,
                 channel_id,
                 video_type AS "video_type: VideoType",
-                view_count
+                view_count,
+                filestem
             FROM video
             WHERE channel_id = $1 AND video_type = $2
             ORDER BY upload_date
@@ -76,7 +80,8 @@ pub async fn channel_handler(
                 duration_string,
                 channel_id,
                 video_type AS "video_type: VideoType",
-                view_count
+                view_count,
+                filestem
             FROM video
             WHERE channel_id = $1 AND video_type = $2
             ORDER BY view_count
@@ -97,7 +102,8 @@ pub async fn channel_handler(
                 duration_string,
                 channel_id,
                 video_type AS "video_type: VideoType",
-                view_count
+                view_count,
+                filestem
             FROM video
             WHERE channel_id = $1 AND video_type = $2
             ORDER BY upload_date
@@ -122,6 +128,7 @@ pub async fn channel_handler(
         channel,
         videos,
         video_type,
+        show_thumbnails,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")

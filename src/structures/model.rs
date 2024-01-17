@@ -72,6 +72,7 @@ pub struct VideoListModel {
     pub channel_id: String,
     pub video_type: VideoType,
     pub view_count: i64,
+    pub filestem: String,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -85,4 +86,6 @@ pub struct VideoChannelJoinModel {
     pub name: String,
     pub video_type: VideoType,
     pub view_count: i64,
+    pub channel_sanitized_name: String,
+    pub filestem: String,
 }

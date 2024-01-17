@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n                id,\n                title,\n                upload_date,\n                duration_string,\n                channel_id,\n                video_type AS \"video_type: VideoType\",\n                view_count\n            FROM video\n            WHERE channel_id = $1 AND video_type = $2\n            ORDER BY upload_date\n            DESC;",
+  "query": "SELECT\n            video.id,\n            title,\n            upload_date,\n            duration_string,\n            channel.id AS channel_id,\n            channel.name,\n            video_type AS \"video_type: VideoType\",\n            view_count,\n            channel.sanitized_name AS channel_sanitized_name,\n            filestem\n        FROM video\n        INNER JOIN channel ON video.channel_id = channel.id\n        WHERE video_type = $1\n        ORDER BY upload_date DESC\n        LIMIT $2;",
   "describe": {
     "columns": [
       {
@@ -30,6 +30,11 @@
       },
       {
         "ordinal": 5,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
         "name": "video_type: VideoType",
         "type_info": {
           "Custom": {
@@ -45,14 +50,23 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "view_count",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 8,
+        "name": "channel_sanitized_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "filestem",
+        "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
-        "Text",
         {
           "Custom": {
             "name": "video_type",
@@ -64,7 +78,8 @@
               ]
             }
           }
-        }
+        },
+        "Int8"
       ]
     },
     "nullable": [
@@ -74,8 +89,11 @@
       false,
       false,
       false,
+      false,
+      false,
+      false,
       false
     ]
   },
-  "hash": "59f56cfe1dc5656889d8c2c169ca981565f2c13e79168f630f1b0906ad697528"
+  "hash": "d73e460f8e3908d98c1430ea9f565bb5296d5fbd1a10a3e34cbcbb710a586bfe"
 }

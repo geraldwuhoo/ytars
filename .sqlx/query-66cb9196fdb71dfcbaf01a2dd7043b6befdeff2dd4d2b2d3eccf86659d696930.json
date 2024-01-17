@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n                video.id,\n                title,\n                upload_date,\n                duration_string,\n                channel.id AS channel_id,\n                channel.name,\n                video_type AS \"video_type: VideoType\",\n                view_count\n            FROM video\n            INNER JOIN channel ON video.channel_id = channel.id\n            WHERE document @@ plainto_tsquery($1)\n            ORDER BY ts_rank(document, plainto_tsquery($1)) DESC\n            LIMIT 100;",
+  "query": "SELECT\n                id,\n                title,\n                upload_date,\n                duration_string,\n                channel_id,\n                video_type AS \"video_type: VideoType\",\n                view_count,\n                filestem\n            FROM video\n            WHERE channel_id = $1 AND video_type = $2\n            ORDER BY upload_date\n            DESC;",
   "describe": {
     "columns": [
       {
@@ -30,11 +30,6 @@
       },
       {
         "ordinal": 5,
-        "name": "name",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
         "name": "video_type: VideoType",
         "type_info": {
           "Custom": {
@@ -50,14 +45,31 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "view_count",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "filestem",
+        "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Text",
+        {
+          "Custom": {
+            "name": "video_type",
+            "kind": {
+              "Enum": [
+                "video",
+                "short",
+                "stream"
+              ]
+            }
+          }
+        }
       ]
     },
     "nullable": [
@@ -71,5 +83,5 @@
       false
     ]
   },
-  "hash": "53d53767d25efc84b61b7feea55789b0a289cf873a607f5f90a7a57858c2c66f"
+  "hash": "66cb9196fdb71dfcbaf01a2dd7043b6befdeff2dd4d2b2d3eccf86659d696930"
 }

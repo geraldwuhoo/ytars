@@ -1,6 +1,15 @@
+use core::fmt;
+use std::collections::HashMap;
+
+use actix_web::HttpRequest;
+use lazy_static::lazy_static;
 use log::debug;
 
-use super::model::VideoType;
+use super::{errors::YtarsError, model::VideoType};
+
+pub const fn _default_true() -> bool {
+    true
+}
 
 pub const fn _default_false() -> bool {
     false
@@ -55,5 +64,101 @@ pub fn view_count_to_string(count: &i64) -> String {
         format!("{}K", truncate(*count as f64 / 1_000.0))
     } else {
         format!("{}", truncate(*count as f64))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum CookieValue {
+    Bool(bool),
+    Int(i64),
+    String(String),
+}
+
+lazy_static! {
+    pub static ref PREFERENCES_DEFAULT: HashMap<&'static str, CookieValue> = HashMap::from([
+        ("show_thumbnails", CookieValue::Bool(false)),
+        ("expand_descriptions", CookieValue::Bool(false)),
+    ]);
+}
+
+impl fmt::Display for CookieValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CookieValue::Bool(value) => write!(f, "{}", value),
+            CookieValue::Int(value) => write!(f, "{}", value),
+            CookieValue::String(value) => write!(f, "{}", value),
+        }
+    }
+}
+
+impl From<String> for CookieValue {
+    fn from(value: String) -> Self {
+        if let Ok(bool_value) = value.parse::<bool>() {
+            CookieValue::Bool(bool_value)
+        } else if let Ok(int_value) = value.parse::<i64>() {
+            CookieValue::Int(int_value)
+        } else {
+            CookieValue::String(value)
+        }
+    }
+}
+
+pub fn get_cookies_from_request(req: &HttpRequest) -> HashMap<&str, CookieValue> {
+    debug!("Received cookies: {:?}", req.cookies());
+    PREFERENCES_DEFAULT
+        .iter()
+        .map(|(name, default_value)| {
+            if let Some(cookie) = req.cookie(name) {
+                (*name, CookieValue::from(cookie.value().to_string()))
+            } else {
+                (*name, default_value.clone())
+            }
+        })
+        .collect()
+}
+
+pub fn preferences_to_cookies<'a>(
+    mut preferences: HashMap<String, String>,
+) -> HashMap<&'a str, CookieValue> {
+    debug!("Received preferences: {:?}", preferences);
+    PREFERENCES_DEFAULT
+        .iter()
+        .map(|(name, default_value)| {
+            if let Some(value) = preferences.remove(*name) {
+                (*name, CookieValue::from(value))
+            } else {
+                (*name, default_value.clone())
+            }
+        })
+        .collect()
+}
+
+pub fn get_show_thumbnails(req: &HttpRequest) -> Result<bool, YtarsError> {
+    let cookies_values = get_cookies_from_request(req);
+    if let Some(CookieValue::Bool(value)) = cookies_values.get("show_thumbnails") {
+        Ok(*value)
+    } else if let Some(CookieValue::Bool(default_value)) =
+        PREFERENCES_DEFAULT.get("show_thumbnails")
+    {
+        Ok(*default_value)
+    } else {
+        Err(YtarsError::Other(
+            "Unexpected default value for show_thumbnails".to_string(),
+        ))
+    }
+}
+
+pub fn get_expand_descriptions(req: &HttpRequest) -> Result<bool, YtarsError> {
+    let cookies_values = get_cookies_from_request(req);
+    if let Some(CookieValue::Bool(value)) = cookies_values.get("expand_descriptions") {
+        Ok(*value)
+    } else if let Some(CookieValue::Bool(default_value)) =
+        PREFERENCES_DEFAULT.get("expand_descriptions")
+    {
+        Ok(*default_value)
+    } else {
+        Err(YtarsError::Other(
+            "Unexpected default value for show_thumbnails".to_string(),
+        ))
     }
 }

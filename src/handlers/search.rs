@@ -49,7 +49,9 @@ pub async fn search_handler(
                 channel.id AS channel_id,
                 channel.name,
                 video_type AS "video_type: VideoType",
-                view_count
+                view_count,
+                channel.sanitized_name AS channel_sanitized_name,
+                filestem
             FROM video
             INNER JOIN channel ON video.channel_id = channel.id
             WHERE document @@ plainto_tsquery($1)

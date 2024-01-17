@@ -38,6 +38,14 @@ video.short {
     width: 50%;
 }
 
+.save {
+    text-align: center;
+    input[type=submit] {
+        padding: 0.5em 1em;
+        cursor: pointer;
+    }
+}
+
 @media screen and (orientation: portrait) {
     video.short {
         width: 85%;
@@ -112,7 +120,7 @@ video.short {
     }
 }
 
-input[type=text] {
+input[type=text], input[type=submit] {
     box-sizing: border-box;
     padding: 0.5em;
     border: none;
@@ -127,7 +135,7 @@ input[type=text] {
         border-bottom: 1px #d9d1c9;
         color: #d9d1d9;
     }
-    input[type=text] {
+    input[type=text], input[type=submit] {
         background-color: #333;
         color: #c9d1d9;
     }
@@ -137,7 +145,7 @@ input[type=text] {
 }
 
 @media (prefers-color-scheme: light) {
-    input[type=text] {
+    input[type=text], input[type=submit] {
         background-color: #c9d1d9;
         color: #222;
     }

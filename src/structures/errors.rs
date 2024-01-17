@@ -35,6 +35,15 @@ pub enum YtarsError {
     #[error("reqwest error\n{0}")]
     ParseError(#[from] reqwest::Error),
 
+    #[error("cookie parse error\n{0}")]
+    CookieParseError(#[from] actix_web::cookie::ParseError),
+
+    #[error("parse int error\n{0}")]
+    ParseIntError(#[from] std::num::ParseIntError),
+
+    #[error("parse bool error\n{0}")]
+    ParseBoolError(#[from] std::str::ParseBoolError),
+
     #[error("other error\n{0}")]
     Other(String),
 }

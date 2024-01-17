@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Preferences | Ytars</title>
+        <link rel="stylesheet" type="text/css" href="/static/style.css">
+    </head>
+    <body>
+        <header>
+            <div class="box">
+                <div class="left">
+                    <a href="/">[ytars]</a>
+                    &gt;
+                    <a href="/preferences">preferences</a>
+                </div>
+                <div class="right search">
+                    <form action="/search" method="get">
+                        <input type="text" id="query" name="query" placeholder="Search">
+                    </form>
+                </div>
+            </div>
+        </header>
+        <main>
+            <h1>Preferences</h1>
+            <hr>
+            <form action="/preferences" method="post">
+                {% for (cookie, cookie_type) in cookies -%}
+                <label for="{{ cookie.name() }}">
+                    <div class="box">
+                        <div class="left">
+                            {{ cookie.name()|pretty_print_cookie|capitalize }}
+                        </div>
+                        <div class="right">
+                        {% match cookie_type -%}
+                            {% when CookieValue::Bool with (val) -%}
+                            <input type="checkbox" name="{{ cookie.name() }}" id="{{ cookie.name() }}" value="true" {% if val %}checked{% endif %}>
+                            {% else -%}
+                        {% endmatch -%}
+                        </div>
+                    </div>
+                </label>
+                {% endfor -%}
+                <div class="save">
+                    <input type="submit" value="Save">
+                </div>
+            </form>
+        </main>
+    </body>
+</html>

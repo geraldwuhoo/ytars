@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n            video.id,\n            title,\n            upload_date,\n            duration_string,\n            channel.id AS channel_id,\n            channel.name,\n            video_type AS \"video_type: VideoType\",\n            view_count\n        FROM video\n        INNER JOIN channel ON video.channel_id = channel.id\n        WHERE video_type = $1\n        ORDER BY upload_date DESC\n        LIMIT $2;",
+  "query": "SELECT\n                id,\n                title,\n                upload_date,\n                duration_string,\n                channel_id,\n                video_type AS \"video_type: VideoType\",\n                view_count,\n                filestem\n            FROM video\n            WHERE channel_id = $1 AND video_type = $2\n            ORDER BY upload_date\n            ASC;",
   "describe": {
     "columns": [
       {
@@ -30,11 +30,6 @@
       },
       {
         "ordinal": 5,
-        "name": "name",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
         "name": "video_type: VideoType",
         "type_info": {
           "Custom": {
@@ -50,13 +45,19 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 6,
         "name": "view_count",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "filestem",
+        "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
+        "Text",
         {
           "Custom": {
             "name": "video_type",
@@ -68,8 +69,7 @@
               ]
             }
           }
-        },
-        "Int8"
+        }
       ]
     },
     "nullable": [
@@ -83,5 +83,5 @@
       false
     ]
   },
-  "hash": "7f762bedafc2d8b77326a38544532823730a3be5a2fa821fa1b659c2c8fab810"
+  "hash": "988ee2ea869d6d665a9c4fc15aa008f589ee5870568205528e78fc377a17bc42"
 }

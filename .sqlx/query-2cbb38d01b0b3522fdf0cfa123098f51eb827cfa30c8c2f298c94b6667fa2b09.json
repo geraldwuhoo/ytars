@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n                id,\n                title,\n                upload_date,\n                duration_string,\n                channel_id,\n                video_type AS \"video_type: VideoType\",\n                view_count\n            FROM video\n            WHERE channel_id = $1 AND video_type = $2\n            ORDER BY upload_date\n            ASC;",
+  "query": "SELECT\n                id,\n                title,\n                upload_date,\n                duration_string,\n                channel_id,\n                video_type AS \"video_type: VideoType\",\n                view_count,\n                filestem\n            FROM video\n            WHERE channel_id = $1 AND video_type = $2\n            ORDER BY view_count\n            DESC;",
   "describe": {
     "columns": [
       {
@@ -48,6 +48,11 @@
         "ordinal": 6,
         "name": "view_count",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "filestem",
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -74,8 +79,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "1008fcb11248767e4c2a7e4ec9050bdf1b91a98beb5ba43dfe54c716a6314ce2"
+  "hash": "2cbb38d01b0b3522fdf0cfa123098f51eb827cfa30c8c2f298c94b6667fa2b09"
 }

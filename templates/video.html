@@ -84,7 +84,7 @@
             </div>
             <hr>
             {% if let Some(text) = video.description -%}
-            <details>
+            <details {% if expand_descriptions %}open{% endif %}>
             <summary>Description</summary>
             {{ text|markdown }}
             </details>

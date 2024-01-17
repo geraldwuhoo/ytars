@@ -13,6 +13,7 @@ use std::{
 use crate::{
     handlers::{
         channel::channel_handler, feed::feed_handler, file::index_handler, home::home_handler,
+        preferences::preferences_get_handler, preferences::preferences_post_handler,
         scan::scan_handler, search::search_handler, video::yt_video_handler,
     },
     structures::errors::YtarsError,
@@ -78,6 +79,8 @@ async fn main() -> Result<(), YtarsError> {
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(scanning.clone()))
             .service(home_handler)
+            .service(preferences_get_handler)
+            .service(preferences_post_handler)
             .service(scan_handler)
             .service(search_handler)
             .service(feed_handler)

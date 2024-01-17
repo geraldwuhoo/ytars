@@ -80,8 +80,14 @@
             <p>
             <ul>
                 {% for video in videos -%}
-                <li class="video">
-                    <a href="/watch?v={{ video.id }}">{{ video.title }}</a> ({{ video.duration_string }})<br>
+                <li class="video" {% if show_thumbnails %}style="margin-top:1em;"{% endif %}>
+                    <a href="/watch?v={{ video.id }}">
+                        {% if show_thumbnails -%}
+                        <img width="100%" src="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" class="center"><br>
+                        {% endif -%}
+                        {{ video.title }}
+                    </a>
+                    ({{ video.duration_string }})<br>
                     {{ video.upload_date }}
                     &middot;
                     {{ crate::structures::util::view_count_to_string(video.view_count) }} views

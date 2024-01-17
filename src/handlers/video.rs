@@ -1,7 +1,7 @@
 use actix_web::{
     get,
     http::header::{self, HeaderValue},
-    web, HttpResponse, Result,
+    web, HttpRequest, HttpResponse, Result,
 };
 use askama::Template;
 use log::debug;
@@ -12,7 +12,7 @@ use time::format_description;
 use crate::structures::{
     errors::YtarsError,
     model::{ChannelModel, VideoModel, VideoType},
-    util::_default_false,
+    util::{_default_false, get_expand_descriptions},
 };
 
 #[derive(Debug, Template)]
@@ -22,6 +22,7 @@ struct VideoTemplate<'a> {
     channel: ChannelModel,
     upload_date: &'a str,
     feed: bool,
+    expand_descriptions: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -33,9 +34,11 @@ pub struct VideoParams {
 
 #[get("/watch")]
 pub async fn yt_video_handler(
+    req: HttpRequest,
     params: web::Query<VideoParams>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
+    let expand_descriptions = get_expand_descriptions(&req)?;
     let video_id = if let Some(id) = &params.v {
         id
     } else {
@@ -94,6 +97,7 @@ pub async fn yt_video_handler(
         channel,
         upload_date,
         feed: params.feed,
+        expand_descriptions,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
