@@ -15,7 +15,7 @@
                     {% let path -%}
                     {% let channel_path = "/channel/{}"|format(channel.id) -%}
                     {% if feed -%}
-                        {% let path = "/feed" -%}
+                        {% let path = "/feed"|format() -%}
                     {% else -%}
                         {% let path = channel_path -%}
                     {% endif -%}
