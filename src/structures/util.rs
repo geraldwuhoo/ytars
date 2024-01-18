@@ -78,6 +78,7 @@ lazy_static! {
     pub static ref PREFERENCES_DEFAULT: HashMap<&'static str, CookieValue> = HashMap::from([
         ("show_thumbnails", CookieValue::Bool(false)),
         ("expand_descriptions", CookieValue::Bool(false)),
+        ("autoplay_videos", CookieValue::Bool(true)),
     ]);
 }
 
@@ -126,6 +127,8 @@ pub fn preferences_to_cookies<'a>(
         .map(|(name, default_value)| {
             if let Some(value) = preferences.remove(*name) {
                 (*name, CookieValue::from(value))
+            } else if let Some(CookieValue::Bool(_)) = PREFERENCES_DEFAULT.get(*name) {
+                (*name, CookieValue::Bool(false))
             } else {
                 (*name, default_value.clone())
             }
@@ -133,28 +136,11 @@ pub fn preferences_to_cookies<'a>(
         .collect()
 }
 
-pub fn get_show_thumbnails(req: &HttpRequest) -> Result<bool, YtarsError> {
+pub fn get_cookie_value_bool(req: &HttpRequest, cookie_name: &str) -> Result<bool, YtarsError> {
     let cookies_values = get_cookies_from_request(req);
-    if let Some(CookieValue::Bool(value)) = cookies_values.get("show_thumbnails") {
+    if let Some(CookieValue::Bool(value)) = cookies_values.get(cookie_name) {
         Ok(*value)
-    } else if let Some(CookieValue::Bool(default_value)) =
-        PREFERENCES_DEFAULT.get("show_thumbnails")
-    {
-        Ok(*default_value)
-    } else {
-        Err(YtarsError::Other(
-            "Unexpected default value for show_thumbnails".to_string(),
-        ))
-    }
-}
-
-pub fn get_expand_descriptions(req: &HttpRequest) -> Result<bool, YtarsError> {
-    let cookies_values = get_cookies_from_request(req);
-    if let Some(CookieValue::Bool(value)) = cookies_values.get("expand_descriptions") {
-        Ok(*value)
-    } else if let Some(CookieValue::Bool(default_value)) =
-        PREFERENCES_DEFAULT.get("expand_descriptions")
-    {
+    } else if let Some(CookieValue::Bool(default_value)) = PREFERENCES_DEFAULT.get(cookie_name) {
         Ok(*default_value)
     } else {
         Err(YtarsError::Other(

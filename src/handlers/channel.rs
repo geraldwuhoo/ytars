@@ -6,7 +6,7 @@ use sqlx::PgPool;
 use crate::structures::{
     errors::YtarsError,
     model::{ChannelModel, VideoListModel, VideoType},
-    util::{_default_video_type, get_show_thumbnails},
+    util::{_default_video_type, get_cookie_value_bool},
 };
 
 #[derive(Debug, Template)]
@@ -44,7 +44,7 @@ pub async fn channel_handler(
     uri: web::Path<String>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
-    let show_thumbnails = get_show_thumbnails(&req)?;
+    let show_thumbnails = get_cookie_value_bool(&req, "show_thumbnails")?;
     let channel_id = uri.to_string();
     let video_type = params.video_type;
     let videos = match params.sort {

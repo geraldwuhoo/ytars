@@ -12,7 +12,7 @@ use time::format_description;
 use crate::structures::{
     errors::YtarsError,
     model::{ChannelModel, VideoModel, VideoType},
-    util::{_default_false, get_expand_descriptions},
+    util::{_default_false, get_cookie_value_bool},
 };
 
 #[derive(Debug, Template)]
@@ -23,6 +23,7 @@ struct VideoTemplate<'a> {
     upload_date: &'a str,
     feed: bool,
     expand_descriptions: bool,
+    autoplay_videos: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -38,7 +39,8 @@ pub async fn yt_video_handler(
     params: web::Query<VideoParams>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
-    let expand_descriptions = get_expand_descriptions(&req)?;
+    let expand_descriptions = get_cookie_value_bool(&req, "expand_descriptions")?;
+    let autoplay_videos = get_cookie_value_bool(&req, "autoplay_videos")?;
     let video_id = if let Some(id) = &params.v {
         id
     } else {
@@ -98,6 +100,7 @@ pub async fn yt_video_handler(
         upload_date,
         feed: params.feed,
         expand_descriptions,
+        autoplay_videos,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
