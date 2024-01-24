@@ -73,6 +73,8 @@ pub struct VideoListModel {
     pub video_type: VideoType,
     pub view_count: i64,
     pub filestem: String,
+    pub likes: Option<i32>,
+    pub dislikes: Option<i32>,
 }
 
 #[derive(Debug, sqlx::FromRow)]

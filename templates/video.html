@@ -58,16 +58,28 @@
             <h4>
                 <div class="box">
                     <div class="left">
+                        {% if exact_view_count -%}
+                        {{ crate::structures::util::view_count_to_string_exact(video.view_count) }} views
+                        {% else -%}
                         {{ crate::structures::util::view_count_to_string(video.view_count) }} views
+                        {% endif -%}
                         &middot;
                         {{ upload_date }}
                     </div>
                     <div class="right">
                         {% if let Some(likes) = video.likes -%}
+                            {% if exact_likes_dislikes_count -%}
+                        {{ crate::structures::util::follower_count_to_string_exact(likes) }} &#x25B4;
+                            {% else -%}
                         {{ crate::structures::util::follower_count_to_string(likes) }} &#x25B4;
+                            {% endif -%}
                         {% endif -%}
                         {% if let Some(dislikes) = video.dislikes -%}
+                            {% if exact_likes_dislikes_count -%}
+                        {{ crate::structures::util::follower_count_to_string_exact(dislikes) }} &#x25BE;
+                            {% else -%}
                         {{ crate::structures::util::follower_count_to_string(dislikes) }} &#x25BE;
+                            {% endif -%}
                         {% endif -%}
                     </div>
                 </div>

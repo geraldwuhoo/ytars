@@ -31,7 +31,8 @@ pub async fn feed_handler(
     params: web::Query<FeedParams>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
-    let show_thumbnails = get_cookie_value_bool(&req, "show_thumbnails")?;
+    let show_thumbnails = get_cookie_value_bool(&req, "thumbnails_for_feed")?
+        || get_cookie_value_bool(&req, "thumbnails_for_all_videos")?;
     let video_type = params.video_type;
     let videos = sqlx::query_as!(
         VideoChannelJoinModel,

@@ -54,6 +54,18 @@ pub fn follower_count_to_string(count: &i32) -> String {
     }
 }
 
+pub fn follower_count_to_string_exact(count: &i32) -> String {
+    count
+        .to_string()
+        .as_bytes()
+        .rchunks(3)
+        .rev()
+        .map(std::str::from_utf8)
+        .collect::<Result<Vec<&str>, _>>()
+        .unwrap()
+        .join(",")
+}
+
 pub fn view_count_to_string(count: &i64) -> String {
     debug!("view count: {}", count);
     if *count < 100 {
@@ -67,6 +79,18 @@ pub fn view_count_to_string(count: &i64) -> String {
     }
 }
 
+pub fn view_count_to_string_exact(count: &i64) -> String {
+    count
+        .to_string()
+        .as_bytes()
+        .rchunks(3)
+        .rev()
+        .map(std::str::from_utf8)
+        .collect::<Result<Vec<&str>, _>>()
+        .unwrap()
+        .join(",")
+}
+
 #[derive(Clone, Debug)]
 pub enum CookieValue {
     Bool(bool),
@@ -76,9 +100,13 @@ pub enum CookieValue {
 
 lazy_static! {
     pub static ref PREFERENCES_DEFAULT: HashMap<&'static str, CookieValue> = HashMap::from([
-        ("show_thumbnails", CookieValue::Bool(false)),
+        ("thumbnails_for_feed", CookieValue::Bool(false)),
+        ("thumbnails_for_all_videos", CookieValue::Bool(false)),
         ("expand_descriptions", CookieValue::Bool(false)),
         ("autoplay_videos", CookieValue::Bool(true)),
+        ("exact_view_count", CookieValue::Bool(true)),
+        ("exact_likes/dislikes_count", CookieValue::Bool(true)),
+        ("likes/dislikes_on_channel_page", CookieValue::Bool(false)),
     ]);
 }
 

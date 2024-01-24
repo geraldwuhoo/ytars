@@ -24,6 +24,8 @@ struct VideoTemplate<'a> {
     feed: bool,
     expand_descriptions: bool,
     autoplay_videos: bool,
+    exact_view_count: bool,
+    exact_likes_dislikes_count: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -41,6 +43,8 @@ pub async fn yt_video_handler(
 ) -> Result<HttpResponse, YtarsError> {
     let expand_descriptions = get_cookie_value_bool(&req, "expand_descriptions")?;
     let autoplay_videos = get_cookie_value_bool(&req, "autoplay_videos")?;
+    let exact_view_count = get_cookie_value_bool(&req, "exact_view_count")?;
+    let exact_likes_dislikes_count = get_cookie_value_bool(&req, "exact_likes/dislikes_count")?;
     let video_id = if let Some(id) = &params.v {
         id
     } else {
@@ -101,6 +105,8 @@ pub async fn yt_video_handler(
         feed: params.feed,
         expand_descriptions,
         autoplay_videos,
+        exact_view_count,
+        exact_likes_dislikes_count,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")

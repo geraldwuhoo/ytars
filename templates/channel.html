@@ -91,6 +91,15 @@
                     {{ video.upload_date }}
                     &middot;
                     {{ crate::structures::util::view_count_to_string(video.view_count) }} views
+                    {% if likes_dislikes_on_channel_page -%}
+                    &middot;
+                        {% if let Some(likes) = video.likes -%}
+                    {{ crate::structures::util::follower_count_to_string(likes) }} &#x25B4;
+                        {% endif -%}
+                        {% if let Some(dislikes) = video.dislikes -%}
+                    {{ crate::structures::util::follower_count_to_string(dislikes) }} &#x25BE;
+                        {% endif -%}
+                    {% endif -%}
                 </li>
                 {% endfor -%}
             </ul>

@@ -16,6 +16,7 @@ struct ChannelTemplate {
     videos: Vec<VideoListModel>,
     video_type: VideoType,
     show_thumbnails: bool,
+    likes_dislikes_on_channel_page: bool,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize)]
@@ -44,7 +45,9 @@ pub async fn channel_handler(
     uri: web::Path<String>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
-    let show_thumbnails = get_cookie_value_bool(&req, "show_thumbnails")?;
+    let show_thumbnails = get_cookie_value_bool(&req, "thumbnails_for_all_videos")?;
+    let likes_dislikes_on_channel_page =
+        get_cookie_value_bool(&req, "likes/dislikes_on_channel_page")?;
     let channel_id = uri.to_string();
     let video_type = params.video_type;
     let videos = match params.sort {
@@ -59,7 +62,9 @@ pub async fn channel_handler(
                 channel_id,
                 video_type AS "video_type: VideoType",
                 view_count,
-                filestem
+                filestem,
+                likes,
+                dislikes
             FROM video
             WHERE channel_id = $1 AND video_type = $2
             ORDER BY upload_date
@@ -81,7 +86,9 @@ pub async fn channel_handler(
                 channel_id,
                 video_type AS "video_type: VideoType",
                 view_count,
-                filestem
+                filestem,
+                likes,
+                dislikes
             FROM video
             WHERE channel_id = $1 AND video_type = $2
             ORDER BY view_count
@@ -103,7 +110,9 @@ pub async fn channel_handler(
                 channel_id,
                 video_type AS "video_type: VideoType",
                 view_count,
-                filestem
+                filestem,
+                likes,
+                dislikes
             FROM video
             WHERE channel_id = $1 AND video_type = $2
             ORDER BY upload_date
@@ -129,6 +138,7 @@ pub async fn channel_handler(
         videos,
         video_type,
         show_thumbnails,
+        likes_dislikes_on_channel_page,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
