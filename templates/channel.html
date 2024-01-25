@@ -22,6 +22,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ channel.name }}{{ suffix }} | Ytars</title>
         <link rel="stylesheet" type="text/css" href="/static/style.css">
+        {% if show_thumbnails -%}
+        <link rel="stylesheet" type="text/css" href="/static/thumbnail.css">
+        {% endif -%}
     </head>
     <body>
         <header>
@@ -78,15 +81,14 @@
                 <a href="/channel/{{ channel.id }}?video_type={{ video_type_param }}&sort=Oldest">[Oldest]</a>
             </div>
             <p>
-            <ul>
+            <ul class="videos">
                 {% for video in videos -%}
                 <li class="video" {% if show_thumbnails %}style="margin-top:1em;"{% endif %}>
                     <a href="/watch?v={{ video.id }}">
                         {% if show_thumbnails -%}
-                        <img width="100%" src="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" class="center"><br>
+                        <img width="100%" src="/files/{{ channel.sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" class="center thumbnail"><br>
                         {% endif -%}
-                        {{ video.title }}
-                    </a>
+                        {{ video.title }}</a>
                     ({{ video.duration_string }})<br>
                     {{ video.upload_date }}
                     &middot;

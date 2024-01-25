@@ -14,6 +14,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Feed | Ytars</title>
         <link rel="stylesheet" type="text/css" href="/static/style.css">
+        {% if show_thumbnails -%}
+        <link rel="stylesheet" type="text/css" href="/static/thumbnail.css">
+        {% endif -%}
     </head>
     <body>
         <header>
@@ -52,15 +55,14 @@
                 </div>
             </div>
             <hr>
-            <ul>
+            <ul class="videos">
                 {% for video in videos -%}
                 <li class="video" {% if show_thumbnails %}style="margin-top:1em;"{% endif %}>
                     <a href="/watch?v={{ video.id }}&feed=true">
                         {% if show_thumbnails -%}
-                        <img width="100%" src="/files/{{ video.channel_sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" class="center"><br>
+                        <img width="100%" src="/files/{{ video.channel_sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" class="center thumbnail"><br>
                         {% endif -%}
-                        {{ video.title }}
-                    </a>
+                        {{ video.title }}</a>
                     ({{ video.duration_string }})<br>
                     <a href="/channel/{{ video.channel_id }}">{{ video.name }}</a><br>
                     {{ video.upload_date }}

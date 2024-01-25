@@ -1,0 +1,18 @@
+@media (max-width: 50em) {
+    ul.videos {
+        display: block;
+    }
+}
+@media (min-width: 50em) {
+    ul.videos {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        column-gap: 1em;
+    }
+}
+img.thumbnail {
+    transition: 0.25s ease;
+}
+img.thumbnail:hover {
+    opacity: 0.5;
+}
