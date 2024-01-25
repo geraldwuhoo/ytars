@@ -1,13 +1,27 @@
-@media (max-width: 50em) {
+@media (max-width: 35em) {
     ul.videos {
         display: block;
     }
 }
-@media (min-width: 50em) {
+@media (min-width: 35em) {
     ul.videos {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        column-gap: 1em;
+        column-gap: 0.5em;
+    }
+}
+@media (min-width: 45em) {
+    ul.videos {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 0.5em;
+    }
+}
+@media (min-width: 60em) {
+    ul.videos {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        column-gap: 0.5em;
     }
 }
 img.thumbnail {
