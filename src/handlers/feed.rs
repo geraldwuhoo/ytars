@@ -46,7 +46,9 @@ pub async fn feed_handler(
             video_type AS "video_type: VideoType",
             view_count,
             channel.sanitized_name AS channel_sanitized_name,
-            filestem
+            filestem,
+            likes,
+            dislikes
         FROM video
         INNER JOIN channel ON video.channel_id = channel.id
         WHERE video_type = $1

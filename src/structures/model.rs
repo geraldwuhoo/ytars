@@ -90,4 +90,6 @@ pub struct VideoChannelJoinModel {
     pub view_count: i64,
     pub channel_sanitized_name: String,
     pub filestem: String,
+    pub likes: Option<i32>,
+    pub dislikes: Option<i32>,
 }

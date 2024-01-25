@@ -5,6 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Search | Ytars</title>
         <link rel="stylesheet" type="text/css" href="/static/style.css">
+        {% if show_thumbnails -%}
+        <link rel="stylesheet" type="text/css" href="/static/thumbnail.css">
+        {% endif -%}
     </head>
     <body>
         <header>
@@ -27,14 +30,28 @@
             Results for &#39;{{ query }}&#39;
             {% endif -%}
             <hr>
-            <ul>
+            <ul class="videos">
                 {% for video in videos -%}
                 <li class="video">
-                    <a href="/watch?v={{ video.id }}">{{ video.title }}</a> ({{ video.duration_string }})<br>
+                    <a href="/watch?v={{ video.id }}">
+                        {% if show_thumbnails -%}
+                        <img width="100%" src="/files/{{ video.channel_sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" class="center thumbnail"><br>
+                        {% endif -%}
+                        {{ video.title }}</a>
+                    ({{ video.duration_string }})<br>
                     <a href="/channel/{{ video.channel_id }}">{{ video.name }}</a><br>
                     {{ video.upload_date }}
                     &middot;
                     {{ crate::structures::util::view_count_to_string(video.view_count) }} views
+                    {% if likes_dislikes_on_channel_page -%}
+                    &middot;
+                        {% if let Some(likes) = video.likes -%}
+                    {{ crate::structures::util::follower_count_to_string(likes) }} &#x25B4;
+                        {% endif -%}
+                        {% if let Some(dislikes) = video.dislikes -%}
+                    {{ crate::structures::util::follower_count_to_string(dislikes) }} &#x25BE;
+                        {% endif -%}
+                    {% endif -%}
                 </li>
                 {% endfor -%}
             </ul>

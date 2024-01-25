@@ -1,7 +1,7 @@
 use actix_web::{
     get,
     http::header::{self, HeaderValue},
-    web, HttpResponse, Result,
+    web, HttpRequest, HttpResponse, Result,
 };
 use askama::Template;
 use log::debug;
@@ -11,6 +11,7 @@ use sqlx::PgPool;
 use crate::structures::{
     errors::YtarsError,
     model::{VideoChannelJoinModel, VideoType},
+    util::get_cookie_value_bool,
 };
 
 #[derive(Debug, Template)]
@@ -18,6 +19,8 @@ use crate::structures::{
 struct SearchTemplate<'a> {
     videos: Vec<VideoChannelJoinModel>,
     query: Option<&'a str>,
+    show_thumbnails: bool,
+    likes_dislikes_on_channel_page: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -27,9 +30,14 @@ pub struct SearchParams {
 
 #[get("/search")]
 pub async fn search_handler(
+    req: HttpRequest,
     params: web::Query<SearchParams>,
     pool: web::Data<PgPool>,
 ) -> Result<HttpResponse, YtarsError> {
+    let show_thumbnails = get_cookie_value_bool(&req, "thumbnails_for_feed")?
+        || get_cookie_value_bool(&req, "thumbnails_for_all_videos")?;
+    let likes_dislikes_on_channel_page =
+        get_cookie_value_bool(&req, "likes/dislikes_on_channel_page")?;
     let query = params.query.as_deref();
     let videos = if let Some(query_str) = query {
         if query_str.is_empty() {
@@ -51,7 +59,9 @@ pub async fn search_handler(
                 video_type AS "video_type: VideoType",
                 view_count,
                 channel.sanitized_name AS channel_sanitized_name,
-                filestem
+                filestem,
+                likes,
+                dislikes
             FROM video
             INNER JOIN channel ON video.channel_id = channel.id
             WHERE document @@ plainto_tsquery($1)
@@ -66,7 +76,12 @@ pub async fn search_handler(
         Vec::new()
     };
 
-    let search = SearchTemplate { videos, query };
+    let search = SearchTemplate {
+        videos,
+        query,
+        show_thumbnails,
+        likes_dislikes_on_channel_page,
+    };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
         .body(search.render()?))
