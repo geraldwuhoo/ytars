@@ -148,12 +148,12 @@ build:binary:musl:
     - .build_binary:musl
     - .non-release
 
-build:binary:gnu:release: 
+build:binary:gnu:release:
   extends:
     - .build_binary:gnu
     - .release
 
-build:binary:musl:release: 
+build:binary:musl:release:
   extends:
     - .build_binary:musl
     - .release

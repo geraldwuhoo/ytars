@@ -1,6 +1,6 @@
 # ytars
 
- [![pipeline status](https://gitlab.wuhoo.xyz/jerry/ytars/badges/master/pipeline.svg)](https://gitlab.wuhoo.xyz/jerry/ytars/-/commits/master) 
+ [![pipeline status](https://gitlab.wuhoo.xyz/jerry/ytars/badges/master/pipeline.svg)](https://gitlab.wuhoo.xyz/jerry/ytars/-/commits/master)
 
 YouTube Archive Rust
 

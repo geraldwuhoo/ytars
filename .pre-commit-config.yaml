@@ -1,0 +1,25 @@
+---
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+        exclude: "^migrations/20231111190819_init.up.sql$"
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+  - repo: https://gitlab.wuhoo.xyz/jerry/pre-commit-rust
+    rev: v1.0.0
+    hooks:
+      - id: fmt
+      - id: cargo-check
+      - id: clippy
+      - id: sqlx-prepare
+        name: sqlx prepare check
+        args: ["--check"]
