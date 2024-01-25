@@ -15,6 +15,7 @@ struct FeedTemplate {
     videos: Vec<VideoChannelJoinModel>,
     video_type: VideoType,
     show_thumbnails: bool,
+    likes_dislikes_on_channel_page: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -33,6 +34,8 @@ pub async fn feed_handler(
 ) -> Result<HttpResponse, YtarsError> {
     let show_thumbnails = get_cookie_value_bool(&req, "thumbnails_for_feed")?
         || get_cookie_value_bool(&req, "thumbnails_for_all_videos")?;
+    let likes_dislikes_on_channel_page =
+        get_cookie_value_bool(&req, "likes/dislikes_on_channel_page")?;
     let video_type = params.video_type;
     let videos = sqlx::query_as!(
         VideoChannelJoinModel,
@@ -64,6 +67,7 @@ pub async fn feed_handler(
         videos,
         video_type,
         show_thumbnails,
+        likes_dislikes_on_channel_page,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
