@@ -14,6 +14,10 @@ repos:
       - id: fix-byte-order-marker
       - id: mixed-line-ending
       - id: trailing-whitespace
+  - repo: https://github.com/markdownlint/markdownlint
+    rev: v0.13.0
+    hooks:
+      - id: markdownlint
   - repo: https://gitlab.wuhoo.xyz/jerry/pre-commit-rust
     rev: v1.0.0
     hooks:
