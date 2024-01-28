@@ -5,6 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Ytars</title>
         <link rel="stylesheet" type="text/css" href="/static/style.css">
+        {% if show_avatars -%}
+        <link rel="stylesheet" type="text/css" href="/static/thumbnail.css">
+        {% endif -%}
     </head>
     <body>
         <header>
@@ -31,9 +34,25 @@
                 </div>
             </div>
             <hr>
-            <ul>
-                {% for ytchannel in channels -%}
-                <li><a href="/channel/{{ ytchannel.id }}">{{ ytchannel.name }}</a></li>
+            <ul class="videos">
+                {% for channel in channels -%}
+                    {% if show_avatars -%}
+                    {% let encoded_channel = channel.sanitized_name|urlencode -%}
+                <li style="margin-bottom: 1em;">
+                    <div class="box" style="align-items: left;">
+                        <a href="/channel/{{ channel.id }}">
+                        <div class="pfp">
+                            <img width="50px" src="/files/{{ encoded_channel }}/{{ encoded_channel }}%20-%20Videos%20[{{ channel.id }}].jpg">
+                            {{ channel.name }}
+                        </div>
+                        </a>
+                    </div>
+                </li>
+                    {% else -%}
+                <li>
+                    <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
+                </li>
+                    {% endif -%}
                 {% endfor -%}
             </ul>
         </main>
