@@ -1,8 +1,8 @@
 # chef
 FROM docker.io/library/rust:1.75.0 AS chef
 RUN rustup target add x86_64-unknown-linux-musl && \
-    apt update && \
-    apt install -y musl-tools musl-dev && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends musl-tools=1.2.3-1 musl-dev=1.2.3-1 && \
     rm -rf /var/lib/apt/lists/*
 RUN cargo install cargo-chef
 WORKDIR /usr/src

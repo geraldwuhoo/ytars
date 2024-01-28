@@ -17,7 +17,11 @@ repos:
   - repo: https://github.com/markdownlint/markdownlint
     rev: v0.13.0
     hooks:
-      - id: markdownlint
+      - id: markdownlint_docker
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
   - repo: https://gitlab.wuhoo.xyz/jerry/pre-commit-rust
     rev: v1.0.0
     hooks:
