@@ -41,16 +41,19 @@
         </header>
         <main>
             {% let class -%}
+            {% let video_loop -%}
             {% match video.video_type -%}
                 {% when VideoType::Short -%}
                     {% let class = "short" -%}
+                    {% let video_loop = true -%}
                 {% else -%}
                     {% let class = "video" -%}
+                    {% let video_loop = false -%}
             {% endmatch -%}
             {% let encoded_channel = channel.sanitized_name|urlencode -%}
             {% let encoded_filename = video.filename|urlencode -%}
             {% let encoded_filestem = video.filestem|urlencode -%}
-            <video class="{{ class }}" poster="/files/{{ encoded_channel }}/{{ encoded_filestem }}.webp" controls preload="auto" {% if autoplay_videos %}autoplay{% endif %}>
+            <video class="{{ class }}" poster="/files/{{ encoded_channel }}/{{ encoded_filestem }}.webp" controls preload="auto" {% if autoplay_videos %}autoplay{% endif %} {% if video_loop %}loop{% endif %}>
                 <source src="/files/{{ encoded_channel }}/{{ encoded_filename }}" />
                 <track src="/files/{{ encoded_channel }}/{{ encoded_filestem }}.en.vtt" kind="subtitles" srclang="en" label="English" />
             </video>
