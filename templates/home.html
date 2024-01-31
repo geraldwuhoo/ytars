@@ -38,16 +38,16 @@
                 {% for channel in channels -%}
                     {% if show_avatars -%}
                     {% let encoded_channel = channel.sanitized_name|urlencode -%}
-                <li style="margin-bottom: 1em;">
-                    <div class="box" style="align-items: left;">
-                        <a href="/channel/{{ channel.id }}">
-                        <div class="pfp">
-                            <img width="50px" src="/thumbnails/channel/{{ channel.id }}">
-                            {{ channel.name }}
+                <a href="/channel/{{ channel.id }}">
+                    <li style="margin-bottom: 1em;">
+                        <div class="box" style="align-items: left;">
+                            <div class="pfp">
+                                <img width="50px" src="/thumbnails/channel/{{ channel.id }}">
+                                {{ channel.name }}
+                            </div>
                         </div>
-                        </a>
-                    </div>
-                </li>
+                    </li>
+                </a>
                     {% else -%}
                 <li>
                     <a href="/channel/{{ channel.id }}">{{ channel.name }}</a>
