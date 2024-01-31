@@ -14,6 +14,24 @@ pub struct ChannelModel {
     pub channel_follower_count: i32,
 }
 
+#[derive(Debug, sqlx::FromRow)]
+#[allow(non_snake_case)]
+pub struct ChannelThumbnailModel {
+    pub id: String,
+    pub thumbnail: Vec<u8>,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+#[allow(non_snake_case)]
+pub struct ChannelFullModel {
+    pub id: String,
+    pub name: String,
+    pub sanitized_name: String,
+    pub description: Option<String>,
+    pub channel_follower_count: i32,
+    pub thumbnail: Option<Vec<u8>>,
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, sqlx::Type, Deserialize, Serialize)]
 #[sqlx(type_name = "video_type", rename_all = "lowercase")]
 pub enum VideoType {
@@ -37,6 +55,13 @@ pub struct VideoModel {
     pub view_count: i64,
     pub likes: Option<i32>,
     pub dislikes: Option<i32>,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+#[allow(non_snake_case)]
+pub struct VideoThumbnailModel {
+    pub id: String,
+    pub thumbnail: Vec<u8>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

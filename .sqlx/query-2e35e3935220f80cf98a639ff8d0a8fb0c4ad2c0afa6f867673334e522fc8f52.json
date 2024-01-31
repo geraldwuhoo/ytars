@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO channel (id, name, sanitized_name, description, channel_follower_count)\n                    VALUES ($1, $2, $3, $4, $5)\n                    ON CONFLICT (id)\n                    DO UPDATE\n                    SET\n                        name=$2,\n                        sanitized_name=$3,\n                        description=$4,\n                        channel_follower_count=$5",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2e35e3935220f80cf98a639ff8d0a8fb0c4ad2c0afa6f867673334e522fc8f52"
+}

@@ -12,9 +12,14 @@ use std::{
 
 use crate::{
     handlers::{
-        channel::channel_handler, feed::feed_handler, file::index_handler, home::home_handler,
-        preferences::preferences_get_handler, preferences::preferences_post_handler,
-        scan::scan_handler, search::search_handler, video::yt_video_handler,
+        channel::channel_handler,
+        feed::feed_handler,
+        file::{index_handler, thumbnail_channel_handler, thumbnail_video_handler},
+        home::home_handler,
+        preferences::{preferences_get_handler, preferences_post_handler},
+        scan::scan_handler,
+        search::search_handler,
+        video::yt_video_handler,
     },
     structures::errors::YtarsError,
 };
@@ -86,6 +91,8 @@ async fn main() -> Result<(), YtarsError> {
             .service(feed_handler)
             .service(channel_handler)
             .service(yt_video_handler)
+            .service(thumbnail_channel_handler)
+            .service(thumbnail_video_handler)
             .service(index_handler)
             .service(ResourceFiles::new("/static", generated))
     })

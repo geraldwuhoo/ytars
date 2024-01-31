@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n                video.filestem AS filestem,\n                channel.sanitized_name AS channel_sanitized_name\n            FROM video\n            INNER JOIN channel on video.channel_id = channel.id\n            WHERE video.id = $1;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "filestem",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "channel_sanitized_name",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "a9486ba302f7de0c3cfbc2f0594dcfea593f1796054f0a308da4220d06923055"
+}

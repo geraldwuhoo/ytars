@@ -55,20 +55,20 @@ pub async fn channel_handler(
             sqlx::query_as!(
                 VideoListModel,
                 r#"SELECT
-                id,
-                title,
-                upload_date,
-                duration_string,
-                channel_id,
-                video_type AS "video_type: VideoType",
-                view_count,
-                filestem,
-                likes,
-                dislikes
-            FROM video
-            WHERE channel_id = $1 AND video_type = $2
-            ORDER BY upload_date
-            DESC;"#,
+                    id,
+                    title,
+                    upload_date,
+                    duration_string,
+                    channel_id,
+                    video_type AS "video_type: VideoType",
+                    view_count,
+                    filestem,
+                    likes,
+                    dislikes
+                FROM video
+                WHERE channel_id = $1 AND video_type = $2
+                ORDER BY upload_date
+                DESC;"#,
                 channel_id,
                 video_type as VideoType,
             )
@@ -79,20 +79,20 @@ pub async fn channel_handler(
             sqlx::query_as!(
                 VideoListModel,
                 r#"SELECT
-                id,
-                title,
-                upload_date,
-                duration_string,
-                channel_id,
-                video_type AS "video_type: VideoType",
-                view_count,
-                filestem,
-                likes,
-                dislikes
-            FROM video
-            WHERE channel_id = $1 AND video_type = $2
-            ORDER BY view_count
-            DESC;"#,
+                    id,
+                    title,
+                    upload_date,
+                    duration_string,
+                    channel_id,
+                    video_type AS "video_type: VideoType",
+                    view_count,
+                    filestem,
+                    likes,
+                    dislikes
+                FROM video
+                WHERE channel_id = $1 AND video_type = $2
+                ORDER BY view_count
+                DESC;"#,
                 channel_id,
                 video_type as VideoType,
             )
@@ -103,20 +103,20 @@ pub async fn channel_handler(
             sqlx::query_as!(
                 VideoListModel,
                 r#"SELECT
-                id,
-                title,
-                upload_date,
-                duration_string,
-                channel_id,
-                video_type AS "video_type: VideoType",
-                view_count,
-                filestem,
-                likes,
-                dislikes
-            FROM video
-            WHERE channel_id = $1 AND video_type = $2
-            ORDER BY upload_date
-            ASC;"#,
+                    id,
+                    title,
+                    upload_date,
+                    duration_string,
+                    channel_id,
+                    video_type AS "video_type: VideoType",
+                    view_count,
+                    filestem,
+                    likes,
+                    dislikes
+                FROM video
+                WHERE channel_id = $1 AND video_type = $2
+                ORDER BY upload_date
+                ASC;"#,
                 channel_id,
                 video_type as VideoType,
             )
@@ -127,7 +127,8 @@ pub async fn channel_handler(
 
     let channel = sqlx::query_as!(
         ChannelModel,
-        "SELECT * FROM channel WHERE id = $1;",
+        r#"SELECT id, name, sanitized_name, description, channel_follower_count
+            FROM channel WHERE id = $1;"#,
         channel_id,
     )
     .fetch_one(pool.as_ref())

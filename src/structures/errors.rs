@@ -44,6 +44,9 @@ pub enum YtarsError {
     #[error("parse bool error\n{0}")]
     ParseBoolError(#[from] std::str::ParseBoolError),
 
+    #[error("image error\n{0}")]
+    ImageError(#[from] image::ImageError),
+
     #[error("other error\n{0}")]
     Other(String),
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n                id,\n                title,\n                upload_date,\n                duration_string,\n                channel_id,\n                video_type AS \"video_type: VideoType\",\n                view_count,\n                filestem,\n                likes,\n                dislikes\n            FROM video\n            WHERE channel_id = $1 AND video_type = $2\n            ORDER BY view_count\n            DESC;",
+  "query": "SELECT\n                    id,\n                    title,\n                    upload_date,\n                    duration_string,\n                    channel_id,\n                    video_type AS \"video_type: VideoType\",\n                    view_count,\n                    filestem,\n                    likes,\n                    dislikes\n                FROM video\n                WHERE channel_id = $1 AND video_type = $2\n                ORDER BY upload_date\n                DESC;",
   "describe": {
     "columns": [
       {
@@ -95,5 +95,5 @@
       true
     ]
   },
-  "hash": "1f52df50c13abc7f033f9fe2aaa25b2bb2439f03c33ba38e8d0c5e74d045db80"
+  "hash": "0dcd1c104502f975701eb96fab0371ecd7f08c72bc330e1f51649c23b3773cb5"
 }

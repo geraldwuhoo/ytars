@@ -1,12 +1,12 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT filestem FROM video WHERE filestem = $1;",
+  "query": "SELECT id FROM channel_thumbnail WHERE id=$1",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "filestem",
-        "type_info": "Text"
+        "name": "id",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -18,5 +18,5 @@
       false
     ]
   },
-  "hash": "8f4ee96833d9bf3173892a93ec7681aa1141ddcd245ac2870e896be5dfc330e5"
+  "hash": "9b6556cbcbe7196cbb1301ff4a76e470e221082f04201e6234d52ef49fbdb311"
 }
