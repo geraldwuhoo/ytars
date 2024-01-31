@@ -35,7 +35,7 @@
                 <li class="video">
                     <a href="/watch?v={{ video.id }}">
                         {% if show_thumbnails -%}
-                        <img width="100%" src="/files/{{ video.channel_sanitized_name|urlencode }}/{{ video.filestem|urlencode }}.webp" class="center thumbnail"><br>
+                        <img width="100%" src="/thumbnails/video/{{ video.id }}" class="center thumbnail"><br>
                         {% endif -%}
                         {{ video.title }}</a>
                     ({{ video.duration_string }})<br>
