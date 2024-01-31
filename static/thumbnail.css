@@ -24,9 +24,9 @@
         column-gap: 0.5em;
     }
 }
-img.thumbnail {
+.thumbnail {
     transition: 0.25s ease;
 }
-img.thumbnail:hover {
+.thumbnail:hover {
     opacity: 0.5;
 }

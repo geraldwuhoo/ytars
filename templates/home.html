@@ -39,7 +39,7 @@
                     {% if show_avatars -%}
                     {% let encoded_channel = channel.sanitized_name|urlencode -%}
                 <a href="/channel/{{ channel.id }}">
-                    <li style="margin-bottom: 1em;">
+                    <li class="thumbnail" style="margin-bottom: 1em;">
                         <div class="box" style="align-items: left;">
                             <div class="pfp">
                                 <img width="50px" src="/thumbnails/channel/{{ channel.id }}">
