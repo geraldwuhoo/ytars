@@ -108,6 +108,7 @@ lazy_static! {
         ("exact_likes/dislikes_count", CookieValue::Bool(true)),
         ("likes/dislikes_on_channel_page", CookieValue::Bool(false)),
         ("channel_avatars_on_homepage", CookieValue::Bool(false)),
+        ("loop_shorts", CookieValue::Bool(true)),
     ]);
 }
 

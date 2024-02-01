@@ -45,7 +45,7 @@
             {% match video.video_type -%}
                 {% when VideoType::Short -%}
                     {% let class = "short" -%}
-                    {% let video_loop = true -%}
+                    {% let video_loop = loop_shorts -%}
                 {% else -%}
                     {% let class = "video" -%}
                     {% let video_loop = false -%}

@@ -26,6 +26,7 @@ struct VideoTemplate<'a> {
     autoplay_videos: bool,
     exact_view_count: bool,
     exact_likes_dislikes_count: bool,
+    loop_shorts: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -45,6 +46,7 @@ pub async fn yt_video_handler(
     let autoplay_videos = get_cookie_value_bool(&req, "autoplay_videos")?;
     let exact_view_count = get_cookie_value_bool(&req, "exact_view_count")?;
     let exact_likes_dislikes_count = get_cookie_value_bool(&req, "exact_likes/dislikes_count")?;
+    let loop_shorts = get_cookie_value_bool(&req, "loop_shorts")?;
     let video_id = if let Some(id) = &params.v {
         id
     } else {
@@ -107,6 +109,7 @@ pub async fn yt_video_handler(
         autoplay_videos,
         exact_view_count,
         exact_likes_dislikes_count,
+        loop_shorts,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
