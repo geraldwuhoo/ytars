@@ -59,12 +59,17 @@
             <ul class="videos">
                 {% for video in videos -%}
                 <li class="video" {% if show_thumbnails %}style="margin-top:1em;"{% endif %}>
-                    <a href="/watch?v={{ video.id }}&feed=true" class="thumbnail">
+                    <a href="/watch?v={{ video.id }}" class="hover">
                         {% if show_thumbnails -%}
-                        <img width="100%" src="/thumbnails/video/{{ video.id }}" class="center"><br>
+                        <div class="thumbnail">
+                            <img width="100%" src="/thumbnails/video/{{ video.id }}" class="center">
+                            <div class="bottom-right">
+                                {{ video.duration_string }}
+                            </div>
+                        </div>
                         {% endif -%}
                         {{ video.title }}</a>
-                    ({{ video.duration_string }})<br>
+                    {% if !show_thumbnails %}({{ video.duration_string }}){% endif %}<br>
                     <a href="/channel/{{ video.channel_id }}">{{ video.name }}</a><br>
                     {{ video.upload_date }}
                     &middot;

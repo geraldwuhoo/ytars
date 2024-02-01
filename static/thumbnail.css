@@ -28,12 +28,28 @@
     }
 }
 
-.thumbnail {
+.hover {
     transition: 0.25s ease;
 }
 
-.thumbnail:hover {
-    opacity: 0.5;
+.hover:hover {
+    opacity: 0.7;
+}
+
+.thumbnail {
+    position: relative;
+}
+
+.bottom-right {
+    position: absolute;
+    bottom: 0.75em;
+    right: 0.25em;
+    color: #ffffff;
+    background-color: #000000;
+    opacity: 0.8;
+    border-radius: 0.25em;
+    padding: 0 0.25em;
+    font-size: 0.8em;
 }
 
 li.video, ul.videos {
