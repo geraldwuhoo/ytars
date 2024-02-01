@@ -33,9 +33,9 @@
             <ul class="videos">
                 {% for video in videos -%}
                 <li class="video">
-                    <a href="/watch?v={{ video.id }}">
+                    <a href="/watch?v={{ video.id }}" class="thumbnail">
                         {% if show_thumbnails -%}
-                        <img width="100%" src="/thumbnails/video/{{ video.id }}" class="center thumbnail"><br>
+                        <img width="100%" src="/thumbnails/video/{{ video.id }}" class="center"><br>
                         {% endif -%}
                         {{ video.title }}</a>
                     ({{ video.duration_string }})<br>

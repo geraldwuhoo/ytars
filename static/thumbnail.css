@@ -3,6 +3,7 @@
         display: block;
     }
 }
+
 @media (min-width: 35em) {
     ul.videos {
         display: grid;
@@ -10,6 +11,7 @@
         column-gap: 0.5em;
     }
 }
+
 @media (min-width: 40em) {
     ul.videos {
         display: grid;
@@ -17,6 +19,7 @@
         column-gap: 0.5em;
     }
 }
+
 @media (min-width: 60em) {
     ul.videos {
         display: grid;
@@ -24,9 +27,20 @@
         column-gap: 0.5em;
     }
 }
+
 .thumbnail {
     transition: 0.25s ease;
 }
+
 .thumbnail:hover {
     opacity: 0.5;
+}
+
+li.video, ul.videos {
+    a {
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
 }
