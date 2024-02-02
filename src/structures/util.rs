@@ -15,8 +15,8 @@ pub const fn _default_false() -> bool {
     false
 }
 
-pub const fn _default_count() -> i64 {
-    100
+pub const fn _default_page() -> i64 {
+    0
 }
 
 pub const fn _default_video_type() -> VideoType {
@@ -109,6 +109,7 @@ lazy_static! {
         ("likes/dislikes_on_channel_page", CookieValue::Bool(false)),
         ("channel_avatars_on_homepage", CookieValue::Bool(false)),
         ("loop_shorts", CookieValue::Bool(true)),
+        ("videos_per_page", CookieValue::Int(20)),
     ]);
 }
 
@@ -134,13 +135,40 @@ impl From<String> for CookieValue {
     }
 }
 
+pub fn build_cookie_value(name: &str, value: &str) -> CookieValue {
+    match PREFERENCES_DEFAULT.get(name) {
+        Some(CookieValue::Bool(default_value)) => CookieValue::Bool(
+            if let CookieValue::Bool(value) = CookieValue::from(value.to_string()) {
+                value
+            } else {
+                *default_value
+            },
+        ),
+        Some(CookieValue::Int(default_value)) => CookieValue::Int(
+            if let CookieValue::Int(value) = CookieValue::from(value.to_string()) {
+                value
+            } else {
+                *default_value
+            },
+        ),
+        Some(CookieValue::String(default_value)) => CookieValue::String(
+            if let CookieValue::String(value) = CookieValue::from(value.to_string()) {
+                value
+            } else {
+                default_value.clone()
+            },
+        ),
+        None => CookieValue::from(value.to_string()),
+    }
+}
+
 pub fn get_cookies_from_request(req: &HttpRequest) -> HashMap<&str, CookieValue> {
     debug!("Received cookies: {:?}", req.cookies());
     PREFERENCES_DEFAULT
         .iter()
         .map(|(name, default_value)| {
             if let Some(cookie) = req.cookie(name) {
-                (*name, CookieValue::from(cookie.value().to_string()))
+                (*name, build_cookie_value(name, cookie.value()))
             } else {
                 (*name, default_value.clone())
             }
@@ -156,7 +184,7 @@ pub fn preferences_to_cookies<'a>(
         .iter()
         .map(|(name, default_value)| {
             if let Some(value) = preferences.remove(*name) {
-                (*name, CookieValue::from(value))
+                (*name, build_cookie_value(name, value.as_str()))
             } else if let Some(CookieValue::Bool(_)) = PREFERENCES_DEFAULT.get(*name) {
                 (*name, CookieValue::Bool(false))
             } else {
@@ -171,6 +199,19 @@ pub fn get_cookie_value_bool(req: &HttpRequest, cookie_name: &str) -> Result<boo
     if let Some(CookieValue::Bool(value)) = cookies_values.get(cookie_name) {
         Ok(*value)
     } else if let Some(CookieValue::Bool(default_value)) = PREFERENCES_DEFAULT.get(cookie_name) {
+        Ok(*default_value)
+    } else {
+        Err(YtarsError::Other(
+            "Unexpected default value for show_thumbnails".to_string(),
+        ))
+    }
+}
+
+pub fn get_cookie_value_i64(req: &HttpRequest, cookie_name: &str) -> Result<i64, YtarsError> {
+    let cookies_values = get_cookies_from_request(req);
+    if let Some(CookieValue::Int(value)) = cookies_values.get(cookie_name) {
+        Ok(*value)
+    } else if let Some(CookieValue::Int(default_value)) = PREFERENCES_DEFAULT.get(cookie_name) {
         Ok(*default_value)
     } else {
         Err(YtarsError::Other(

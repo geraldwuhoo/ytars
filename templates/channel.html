@@ -58,7 +58,7 @@
                 </div>
                 <div class="right subscribers">
                     {{ crate::structures::util::follower_count_to_string(channel.channel_follower_count) }} subscribers<br>
-                    {{ videos.len() }} {{ tab }}
+                    {{ video_count }} {{ tab }}
                 </div>
             </div>
             {% if let Some(text) = channel.description -%}
@@ -110,6 +110,18 @@
                 </li>
                 {% endfor -%}
             </ul>
+            <div class="box">
+                <div class="left">
+                    {% if page > 0 -%}
+                    <a href="/channel/{{ channel.id }}?video_type={{ video_type_param }}&page={{ page - 1 }}">< Prev</a>
+                    {% endif -%}
+                </div>
+                <div class="right">
+                    {% if (page + 1) * page_size < video_count -%}
+                    <a href="/channel/{{ channel.id }}?video_type={{ video_type_param }}&page={{ page + 1 }}">Next ></a>
+                    {% endif -%}
+                </div>
+            </div>
         </main>
     </body>
 </html>

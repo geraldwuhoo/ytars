@@ -1,11 +1,15 @@
 {% let suffix -%}
+{% let video_type_param -%}
 {% match video_type -%}
     {% when VideoType::Short -%}
         {% let suffix = " (Shorts)" -%}
+        {% let video_type_param = "Short" -%}
     {% when VideoType::Stream -%}
         {% let suffix = " (Streams)" -%}
+        {% let video_type_param = "Stream" -%}
     {% when VideoType::Video -%}
         {% let suffix = "" -%}
+        {% let video_type_param = "Video" -%}
 {% endmatch -%}
 <!DOCTYPE html>
 <html lang="en">
@@ -86,6 +90,18 @@
                 </li>
                 {% endfor -%}
             </ul>
+            <div class="box">
+                <div class="left">
+                    {% if page > 0 -%}
+                    <a href="/feed?video_type={{ video_type_param }}&page={{ page - 1 }}">< Prev</a>
+                    {% endif -%}
+                </div>
+                <div class="right">
+                    {% if i64::try_from(videos.len())? >= page_size && (page + 1) * page_size < max_results_count -%}
+                    <a href="/feed?video_type={{ video_type_param }}&page={{ page + 1 }}">Next ></a>
+                    {% endif -%}
+                </div>
+            </div>
         </main>
     </body>
 </html>

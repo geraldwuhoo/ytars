@@ -35,6 +35,8 @@
                         {% match cookie_type -%}
                             {% when CookieValue::Bool with (val) -%}
                             <input type="checkbox" name="{{ cookie.name() }}" id="{{ cookie.name() }}" value="true" {% if val %}checked{% endif %}>
+                            {% when CookieValue::Int with (val) -%}
+                            <input type="text" name="{{ cookie.name() }}" id="{{ cookie.name() }}" value="{{ val }}">
                             {% else -%}
                         {% endmatch -%}
                         </div>

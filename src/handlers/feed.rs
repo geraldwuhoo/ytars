@@ -1,12 +1,13 @@
 use actix_web::{get, web, HttpRequest, HttpResponse, Result};
 use askama::Template;
+use log::debug;
 use serde::Deserialize;
 use sqlx::PgPool;
 
 use crate::structures::{
     errors::YtarsError,
     model::{VideoChannelJoinModel, VideoType},
-    util::{_default_count, _default_video_type, get_cookie_value_bool},
+    util::{_default_page, _default_video_type, get_cookie_value_bool, get_cookie_value_i64},
 };
 
 #[derive(Debug, Template)]
@@ -16,14 +17,17 @@ struct FeedTemplate {
     video_type: VideoType,
     show_thumbnails: bool,
     likes_dislikes_on_channel_page: bool,
+    page: i64,
+    page_size: i64,
+    max_results_count: i64,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct FeedParams {
-    #[serde(default = "_default_count")]
-    count: i64,
     #[serde(default = "_default_video_type")]
     video_type: VideoType,
+    #[serde(default = "_default_page")]
+    page: i64,
 }
 
 #[get("/feed")]
@@ -37,6 +41,13 @@ pub async fn feed_handler(
     let likes_dislikes_on_channel_page =
         get_cookie_value_bool(&req, "likes/dislikes_on_channel_page")?;
     let video_type = params.video_type;
+    let page_size = get_cookie_value_i64(&req, "videos_per_page")?;
+    let page = params.page;
+    let max_results_count = 200;
+
+    debug!("Getting page {} size {} for feed", page, page_size);
+
+    let offset = std::cmp::min(page * page_size, max_results_count);
     let videos = sqlx::query_as!(
         VideoChannelJoinModel,
         r#"SELECT
@@ -56,9 +67,11 @@ pub async fn feed_handler(
         INNER JOIN channel ON video.channel_id = channel.id
         WHERE video_type = $1
         ORDER BY upload_date DESC
-        LIMIT $2;"#,
+        OFFSET $2
+        LIMIT $3;"#,
         video_type as VideoType,
-        params.count,
+        offset,
+        std::cmp::max(std::cmp::min(max_results_count - offset, page_size), 0),
     )
     .fetch_all(pool.get_ref())
     .await?;
@@ -68,6 +81,9 @@ pub async fn feed_handler(
         video_type,
         show_thumbnails,
         likes_dislikes_on_channel_page,
+        page,
+        page_size,
+        max_results_count,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")

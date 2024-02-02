@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n                    id,\n                    title,\n                    upload_date,\n                    duration_string,\n                    channel_id,\n                    video_type AS \"video_type: VideoType\",\n                    view_count,\n                    filestem,\n                    likes,\n                    dislikes\n                FROM video\n                WHERE channel_id = $1 AND video_type = $2\n                ORDER BY upload_date\n                DESC;",
+  "query": "SELECT\n            video.id,\n            title,\n            upload_date,\n            duration_string,\n            channel.id AS channel_id,\n            channel.name,\n            video_type AS \"video_type: VideoType\",\n            view_count,\n            channel.sanitized_name AS channel_sanitized_name,\n            filestem,\n            likes,\n            dislikes\n        FROM video\n        INNER JOIN channel ON video.channel_id = channel.id\n        WHERE video_type = $1\n        ORDER BY upload_date DESC\n        OFFSET $2\n        LIMIT $3;",
   "describe": {
     "columns": [
       {
@@ -30,6 +30,11 @@
       },
       {
         "ordinal": 5,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
         "name": "video_type: VideoType",
         "type_info": {
           "Custom": {
@@ -45,29 +50,33 @@
         }
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "view_count",
         "type_info": "Int8"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
+        "name": "channel_sanitized_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
         "name": "filestem",
         "type_info": "Text"
       },
       {
-        "ordinal": 8,
+        "ordinal": 10,
         "name": "likes",
         "type_info": "Int4"
       },
       {
-        "ordinal": 9,
+        "ordinal": 11,
         "name": "dislikes",
         "type_info": "Int4"
       }
     ],
     "parameters": {
       "Left": [
-        "Text",
         {
           "Custom": {
             "name": "video_type",
@@ -79,10 +88,14 @@
               ]
             }
           }
-        }
+        },
+        "Int8",
+        "Int8"
       ]
     },
     "nullable": [
+      false,
+      false,
       false,
       false,
       false,
@@ -95,5 +108,5 @@
       true
     ]
   },
-  "hash": "0dcd1c104502f975701eb96fab0371ecd7f08c72bc330e1f51649c23b3773cb5"
+  "hash": "001c59fd9dbac0b8c1af1e4ae31a561337d9e99560451b345fadded74969df71"
 }
