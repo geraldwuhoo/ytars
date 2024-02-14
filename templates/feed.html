@@ -63,7 +63,7 @@
             <ul class="videos">
                 {% for video in videos -%}
                 <li class="video" {% if show_thumbnails %}style="margin-top:1em;"{% endif %}>
-                    <a href="/watch?v={{ video.id }}" class="hover">
+                    <a href="/watch?v={{ video.id }}&feed=true" class="hover">
                         {% if show_thumbnails -%}
                         <div class="thumbnail">
                             <img width="100%" src="/thumbnails/video/{{ video.id }}" class="center">
