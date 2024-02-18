@@ -4,3 +4,5 @@
 docker-compose.yaml
 .env
 .vscode
+image.tar
+ytars_x86_64-*
