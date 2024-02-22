@@ -1,3 +1,5 @@
+use core::fmt;
+
 use actix_web::{get, web, HttpRequest, HttpResponse, Result};
 use askama::Template;
 use log::debug;
@@ -21,6 +23,7 @@ struct ChannelTemplate {
     likes_dislikes_on_channel_page: bool,
     page: i64,
     page_size: i64,
+    sort_type: Sort,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize)]
@@ -28,6 +31,12 @@ enum Sort {
     Latest,
     Popular,
     Oldest,
+}
+
+impl fmt::Display for Sort {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 const fn _default_sort_type() -> Sort {
@@ -110,9 +119,13 @@ pub async fn channel_handler(
                 FROM video
                 WHERE channel_id = $1 AND video_type = $2
                 ORDER BY view_count
-                DESC;"#,
+                DESC
+                OFFSET $3
+                LIMIT $4;"#,
                 channel_id,
                 video_type as VideoType,
+                page * page_size,
+                page_size,
             )
             .fetch_all(pool.as_ref())
             .await?
@@ -134,9 +147,13 @@ pub async fn channel_handler(
                 FROM video
                 WHERE channel_id = $1 AND video_type = $2
                 ORDER BY upload_date
-                ASC;"#,
+                ASC
+                OFFSET $3
+                LIMIT $4;"#,
                 channel_id,
                 video_type as VideoType,
+                page * page_size,
+                page_size,
             )
             .fetch_all(pool.as_ref())
             .await?
@@ -171,6 +188,7 @@ pub async fn channel_handler(
         likes_dislikes_on_channel_page,
         page,
         page_size,
+        sort_type: params.sort,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
