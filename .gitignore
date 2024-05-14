@@ -6,3 +6,4 @@ docker-compose.yaml
 .vscode
 image.tar
 ytars_x86_64-*
+.direnv

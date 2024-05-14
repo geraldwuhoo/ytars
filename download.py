@@ -56,6 +56,7 @@ for channel in data:
         "download_archive": f"{args.path}/archive",
         "progress": args.progress,
         "quiet": args.quiet,
+        "ignoreerrors": True,
         # Download in priority:
         # 1. webm compatible: 4320p > 2160p > 1440p > 1080p > 720p, AV1 > VP9, HFR preferred, OPUS
         # 2. mp4 compatible: 1080p and lower, H264, M4A
