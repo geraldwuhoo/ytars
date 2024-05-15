@@ -4,7 +4,7 @@ use actix_web::{get, web, HttpResponse, Result};
 use askama::Template;
 use futures::{stream, StreamExt, TryStreamExt};
 use glob::glob;
-use image::{imageops::FilterType, io::Reader, ImageOutputFormat};
+use image::{imageops::FilterType, io::Reader, ImageFormat};
 use log::{debug, info};
 use reqwest::Client;
 use serde::Deserialize;
@@ -53,14 +53,14 @@ struct ScanTemplate<'a> {
 async fn thumbnail_image(
     width: u32,
     height: u32,
-    image_output_format: Option<ImageOutputFormat>,
+    image_format: Option<ImageFormat>,
     path: &PathBuf,
 ) -> Result<Vec<u8>, YtarsError> {
     let image = Reader::open(path)?.with_guessed_format()?.decode()?;
     let image = image.resize_to_fill(width, height, FilterType::Triangle);
-    let image_output_format = image_output_format.unwrap_or(ImageOutputFormat::WebP);
+    let image_format = image_format.unwrap_or(ImageFormat::WebP);
     let mut image_bytes = Vec::new();
-    image.write_to(&mut Cursor::new(&mut image_bytes), image_output_format)?;
+    image.write_to(&mut Cursor::new(&mut image_bytes), image_format)?;
     Ok(image_bytes)
 }
 
@@ -243,13 +243,8 @@ async fn populate_videos_in_channel(
 
                 if overwrite || video_thumbnail.is_none() {
                     info!("Resizing thumbnail at {}", thumbnail_path.display());
-                    let resized_thumbnail = thumbnail_image(
-                        320,
-                        180,
-                        Some(ImageOutputFormat::Jpeg(80)),
-                        &thumbnail_path,
-                    )
-                    .await?;
+                    let resized_thumbnail =
+                        thumbnail_image(320, 180, Some(ImageFormat::Jpeg), &thumbnail_path).await?;
                     sqlx::query_as!(
                         VideoThumbnailModel,
                         r#"INSERT INTO video_thumbnail (id, thumbnail)
