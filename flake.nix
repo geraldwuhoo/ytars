@@ -28,6 +28,7 @@
           python3Packages.yt-dlp
           python3Packages.pyyaml
           pre-commit
+          hadolint
         ];
       in {
         devShells.default = pkgs.mkShell {

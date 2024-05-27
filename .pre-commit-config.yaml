@@ -21,7 +21,7 @@ repos:
   - repo: https://github.com/hadolint/hadolint
     rev: v2.12.0
     hooks:
-      - id: hadolint-docker
+      - id: hadolint
   - repo: https://gitlab.wuhoo.xyz/jerry/pre-commit-rust
     rev: v1.0.0
     hooks:
