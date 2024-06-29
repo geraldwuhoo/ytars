@@ -15,14 +15,14 @@ pub struct ChannelModel {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-#[allow(non_snake_case)]
+#[allow(non_snake_case, dead_code)]
 pub struct ChannelThumbnailModel {
     pub id: String,
     pub thumbnail: Vec<u8>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
-#[allow(non_snake_case)]
+#[allow(non_snake_case, dead_code)]
 pub struct ChannelFullModel {
     pub id: String,
     pub name: String,
@@ -41,7 +41,7 @@ pub enum VideoType {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-#[allow(non_snake_case)]
+#[allow(non_snake_case, dead_code)]
 pub struct VideoModel {
     pub id: String,
     pub title: String,
@@ -58,7 +58,7 @@ pub struct VideoModel {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-#[allow(non_snake_case)]
+#[allow(non_snake_case, dead_code)]
 pub struct VideoThumbnailModel {
     pub id: String,
     pub thumbnail: Vec<u8>,
@@ -88,7 +88,7 @@ pub struct VideoLikesDislikes {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-#[allow(non_snake_case)]
+#[allow(non_snake_case, dead_code)]
 pub struct VideoListModel {
     pub id: String,
     pub title: String,
@@ -103,7 +103,7 @@ pub struct VideoListModel {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-#[allow(non_snake_case)]
+#[allow(non_snake_case, dead_code)]
 pub struct VideoChannelJoinModel {
     pub id: String,
     pub title: String,
