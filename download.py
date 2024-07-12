@@ -3,7 +3,8 @@
 import argparse
 
 import yaml
-from yt_dlp import YoutubeDL
+
+import yt_dlp
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -42,6 +43,7 @@ with open(args.list, "r", encoding="utf8") as stream:
 for channel in data:
     name = channel["name"]
     url = channel["url"]
+    livestream = channel.get("livestreams", False)
 
     if args.channel != "" and args.channel != name:
         continue
@@ -57,13 +59,22 @@ for channel in data:
         "progress": args.progress,
         "quiet": args.quiet,
         "ignoreerrors": True,
+        "match_filter": yt_dlp.utils.match_filter_func(
+            # Ignore all currently live or upcoming livestreams, as these are useless to download
+            "live_status != is_live & live_status != is_upcoming{}".format(
+                # By default, ignore all livestreams
+                ""
+                if livestream
+                else " & live_status != was_live"
+            )
+        ),
         # Download in priority:
         # 1. webm compatible: 4320p > 2160p > 1440p > 1080p > 720p, AV1 > VP9, HFR preferred, OPUS
         # 2. mp4 compatible: 1080p and lower, H264, M4A
         # To avoid .mkv files (mainly h264 + opus), which cannot be played in the browser
         "format": "(571/402/272/701/401/315/313/700/400/308/271/699/399/303/248/698/398/302/247)+bestaudio[acodec=opus]/bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
     }
-    with YoutubeDL(ydl_opts) as ydl:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         print(f"Downloading: {name} ({url})")
         try:
             ydl.download(url)
