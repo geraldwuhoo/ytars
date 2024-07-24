@@ -4,7 +4,7 @@ use actix_web::{get, web, HttpResponse, Result};
 use askama::Template;
 use futures::{stream, StreamExt, TryStreamExt};
 use glob::glob;
-use image::{imageops::FilterType, io::Reader, ImageFormat};
+use image::{imageops::FilterType, ImageFormat, ImageReader};
 use log::{debug, info};
 use reqwest::Client;
 use serde::Deserialize;
@@ -56,7 +56,7 @@ async fn thumbnail_image(
     image_format: Option<ImageFormat>,
     path: &PathBuf,
 ) -> Result<Vec<u8>, YtarsError> {
-    let image = Reader::open(path)?.with_guessed_format()?.decode()?;
+    let image = ImageReader::open(path)?.with_guessed_format()?.decode()?;
     let image = image.resize_to_fill(width, height, FilterType::Triangle);
     let image_format = image_format.unwrap_or(ImageFormat::WebP);
     let mut image_bytes = Vec::new();
