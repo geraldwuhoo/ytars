@@ -61,11 +61,11 @@ for channel in data:
         "ignoreerrors": True,
         "match_filter": yt_dlp.utils.match_filter_func(
             # Ignore all currently live or upcoming livestreams, as these are useless to download
-            "live_status != is_live & live_status != is_upcoming{}".format(
+            "live_status !=? is_live & live_status !=? is_upcoming{}".format(
                 # By default, ignore all livestreams
                 ""
                 if livestream
-                else " & live_status != was_live"
+                else " & live_status !=? was_live"
             )
         ),
         # Download in priority:
