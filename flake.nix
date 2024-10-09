@@ -33,6 +33,7 @@
           openssl
           sqlx-cli
           cargo-audit
+          cargo-watch
           python3
           python3Packages.yt-dlp
           python3Packages.pyyaml
