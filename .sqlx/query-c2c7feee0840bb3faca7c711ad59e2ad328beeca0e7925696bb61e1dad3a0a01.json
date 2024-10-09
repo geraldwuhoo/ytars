@@ -1,0 +1,101 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n                    id,\n                    title,\n                    upload_date,\n                    duration_string,\n                    channel_id,\n                    video_type AS \"video_type: VideoType\",\n                    view_count,\n                    filestem,\n                    likes,\n                    dislikes\n                FROM video\n                WHERE channel_id = $1 AND video_type = $2\n                ORDER BY duration_string\n                DESC\n                OFFSET $3\n                LIMIT $4;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "upload_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 3,
+        "name": "duration_string",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "channel_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "video_type: VideoType",
+        "type_info": {
+          "Custom": {
+            "name": "video_type",
+            "kind": {
+              "Enum": [
+                "video",
+                "short",
+                "stream"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "view_count",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "filestem",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "likes",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "dislikes",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        {
+          "Custom": {
+            "name": "video_type",
+            "kind": {
+              "Enum": [
+                "video",
+                "short",
+                "stream"
+              ]
+            }
+          }
+        },
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "c2c7feee0840bb3faca7c711ad59e2ad328beeca0e7925696bb61e1dad3a0a01"
+}

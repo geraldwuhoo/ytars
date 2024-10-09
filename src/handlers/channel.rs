@@ -31,6 +31,7 @@ enum Sort {
     Latest,
     Popular,
     Oldest,
+    Longest,
 }
 
 impl fmt::Display for Sort {
@@ -148,6 +149,34 @@ pub async fn channel_handler(
                 WHERE channel_id = $1 AND video_type = $2
                 ORDER BY upload_date
                 ASC
+                OFFSET $3
+                LIMIT $4;"#,
+                channel_id,
+                video_type as VideoType,
+                page * page_size,
+                page_size,
+            )
+            .fetch_all(pool.as_ref())
+            .await?
+        }
+        Sort::Longest => {
+            sqlx::query_as!(
+                VideoListModel,
+                r#"SELECT
+                    id,
+                    title,
+                    upload_date,
+                    duration_string,
+                    channel_id,
+                    video_type AS "video_type: VideoType",
+                    view_count,
+                    filestem,
+                    likes,
+                    dislikes
+                FROM video
+                WHERE channel_id = $1 AND video_type = $2
+                ORDER BY duration_string
+                DESC
                 OFFSET $3
                 LIMIT $4;"#,
                 channel_id,
