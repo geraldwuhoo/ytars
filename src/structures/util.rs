@@ -23,6 +23,12 @@ pub const fn _default_video_type() -> VideoType {
     VideoType::Video
 }
 
+pub fn get_version() -> String {
+    option_env!("CI_COMMIT_TAG")
+        .unwrap_or(option_env!("CI_COMMIT_SHORT_SHA").unwrap_or(""))
+        .to_string()
+}
+
 fn truncate(num: f64) -> f64 {
     debug!("got num to truncate: {}", num);
     let num_integ = num.trunc().to_string();

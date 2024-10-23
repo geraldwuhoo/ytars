@@ -52,10 +52,12 @@
     font-size: 0.8em;
 }
 
-li.video, ul.videos {
+li.video,
+ul.videos {
     a {
         text-decoration: none;
     }
+
     a:hover {
         text-decoration: underline;
     }
