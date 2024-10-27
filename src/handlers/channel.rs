@@ -175,8 +175,9 @@ pub async fn channel_handler(
                     dislikes
                 FROM video
                 WHERE channel_id = $1 AND video_type = $2
-                ORDER BY duration_string
-                DESC
+                ORDER BY
+                    CHAR_LENGTH(duration_string) DESC,
+                    duration_string DESC
                 OFFSET $3
                 LIMIT $4;"#,
                 channel_id,
