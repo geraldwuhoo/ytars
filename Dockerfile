@@ -18,6 +18,8 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
 COPY . .
+ARG CI_COMMIT_TAG
+ARG CI_COMMIT_SHORT_SHA
 RUN cargo build --release --target x86_64-unknown-linux-musl --bin ytars
 
 # Clean image

@@ -125,6 +125,8 @@ build:container:
   script:
     - >-
       buildah build
+      --build-arg CI_COMMIT_TAG
+      --build-arg CI_COMMIT_SHORT_SHA
       --layers
       --cache-to "${CI_REGISTRY_IMAGE}/build-cache"
       --cache-from "${CI_REGISTRY_IMAGE}/build-cache"
