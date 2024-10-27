@@ -167,7 +167,8 @@ async fn populate_videos_in_channel(
                 .description
                 .as_ref()
                 .map(|description| description.replace('\u{0000}', ""));
-            let short = (!video.duration_string.contains(':') || video.duration_string == "1:00")
+            let short = (!video.duration_string.contains(':')
+                || (video.duration_string.len() == 4 && video.duration_string.as_str() <= "3:00"))
                 && video.aspect_ratio < 1.0;
             let video_type = if short {
                 VideoType::Short
