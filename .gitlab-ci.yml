@@ -89,7 +89,7 @@ variables:
 .push:
   stage: push
   image:
-    name: gcr.io/go-containerregistry/crane/debug:v0.15.2
+    name: cgr.dev/chainguard/crane:latest-dev
     entrypoint: [""]
   needs:
     - build:container
