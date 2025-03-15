@@ -44,6 +44,32 @@ for channel in data:
     name = channel["name"]
     url = channel["url"]
     livestream = channel.get("livestreams", False)
+    quality = channel.get("quality")
+    match quality:
+        case "1440p":
+            # Download in priority:
+            # 1. webm compatible: 1440p > 1080p > 720p, AV1 > VP9, HFR preferred, OPUS
+            # 2. mp4 compatible: 1080p and lower, H264, M4A
+            # To avoid .mkv files (mainly h264 + opus), which cannot be played in the browser
+            ytdlp_format = "(700/400/308/271/699/399/303/248/616/698/398/302/612/247)+bestaudio[acodec=opus]/bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
+        case "1080p":
+            # Download in priority:
+            # 1. webm compatible: 1080p > 720p, AV1 > VP9, HFR preferred, OPUS
+            # 2. mp4 compatible: 1080p and lower, H264, M4A
+            # To avoid .mkv files (mainly h264 + opus), which cannot be played in the browser
+            ytdlp_format = "(699/399/303/248/616/698/398/302/612/247)+bestaudio[acodec=opus]/bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
+        case "720p":
+            # Download in priority:
+            # 1. webm compatible: 720p, AV1 > VP9, HFR preferred, OPUS
+            # 2. mp4 compatible: 720p and lower, H264, M4A
+            # To avoid .mkv files (mainly h264 + opus), which cannot be played in the browser
+            ytdlp_format = "(698/398/302/612/247)+bestaudio[acodec=opus]/bestvideo[height<=?720][vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
+        case _:
+            # Download in priority:
+            # 1. webm compatible: 4320p > 2160p > 1440p > 1080p > 720p, AV1 > VP9, HFR preferred, OPUS
+            # 2. mp4 compatible: 1080p and lower, H264, M4A
+            # To avoid .mkv files (mainly h264 + opus), which cannot be played in the browser
+            ytdlp_format = "(702/571/402/272/701/401/315/313/700/400/308/271/699/399/303/248/616/698/398/302/612/247)+bestaudio[acodec=opus]/bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
 
     if args.channel != "" and args.channel != name:
         continue
@@ -68,11 +94,7 @@ for channel in data:
                 else " & live_status !=? was_live"
             )
         ),
-        # Download in priority:
-        # 1. webm compatible: 4320p > 2160p > 1440p > 1080p > 720p, AV1 > VP9, HFR preferred, OPUS
-        # 2. mp4 compatible: 1080p and lower, H264, M4A
-        # To avoid .mkv files (mainly h264 + opus), which cannot be played in the browser
-        "format": "(571/402/272/701/401/315/313/700/400/308/271/699/399/303/248/698/398/302/247)+bestaudio[acodec=opus]/bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
+        "format": ytdlp_format,
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         print(f"Downloading: {name} ({url})")
