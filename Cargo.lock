@@ -4219,7 +4219,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "static-files 0.2.5",
+ "static-files 0.3.1",
  "thiserror 2.0.17",
  "time",
 ]
