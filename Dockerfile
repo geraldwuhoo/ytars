@@ -1,5 +1,5 @@
 # chef
-FROM docker.io/library/rust:1.90.0 AS chef
+FROM docker.io/library/rust:1.91.1 AS chef
 RUN rustup target add x86_64-unknown-linux-musl && \
     apt-get update && \
     apt-get install -y --no-install-recommends musl-dev=1.2.5-3 && \
