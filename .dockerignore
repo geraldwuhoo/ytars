@@ -8,3 +8,5 @@
 !build.rs
 !Cargo.toml
 !Cargo.lock
+!requirements.txt
+!download.py
