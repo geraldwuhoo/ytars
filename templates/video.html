@@ -48,11 +48,11 @@
                     {% let video_loop = loop_shorts -%}
                 {% else -%}
                     {% let class = "video" -%}
-                    {% let video_loop = false -%}
+                    {% let video_loop = false | ref -%}
             {% endmatch -%}
-            {% let encoded_channel = channel.sanitized_name|urlencode -%}
-            {% let encoded_filename = video.filename|urlencode -%}
-            {% let encoded_filestem = video.filestem|urlencode -%}
+            {% let encoded_channel = channel.sanitized_name | urlencode -%}
+            {% let encoded_filename = video.filename | urlencode -%}
+            {% let encoded_filestem = video.filestem | urlencode -%}
             <video class="{{ class }}" poster="/files/{{ encoded_channel }}/{{ encoded_filestem }}.webp" controls preload="auto" {% if autoplay_videos %}autoplay{% endif %} {% if video_loop %}loop{% endif %}>
                 <source src="/files/{{ encoded_channel }}/{{ encoded_filename }}" />
                 <track src="/files/{{ encoded_channel }}/{{ encoded_filestem }}.en.vtt" kind="subtitles" srclang="en" label="English" />
@@ -101,7 +101,7 @@
             {% if let Some(text) = video.description -%}
             <details {% if expand_descriptions %}open{% endif %}>
             <summary>Description</summary>
-            {{ text|markdown }}
+            {{ crate::structures::util::to_html(text) | escape("none") }}
             </details>
             {% endif -%}
         </main>

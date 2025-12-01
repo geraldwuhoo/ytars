@@ -12,7 +12,10 @@ use crate::structures::{
 };
 
 mod filters {
-    pub fn pretty_print_cookie<T: std::fmt::Display>(s: T) -> ::askama::Result<String> {
+    pub fn pretty_print_cookie<T: std::fmt::Display>(
+        s: T,
+        _: &dyn askama::Values,
+    ) -> ::askama::Result<String> {
         let s = s.to_string();
         Ok(s.replace('_', " "))
     }

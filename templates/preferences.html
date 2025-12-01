@@ -29,7 +29,7 @@
                 <label for="{{ cookie.name() }}">
                     <div class="box">
                         <div class="left">
-                            {{ cookie.name()|pretty_print_cookie|capitalize }}
+                            {{ cookie.name() | pretty_print_cookie | capitalize }}
                         </div>
                         <div class="right">
                         {% match cookie_type -%}

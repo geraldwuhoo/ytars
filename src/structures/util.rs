@@ -2,6 +2,11 @@ use core::fmt;
 use std::collections::HashMap;
 
 use actix_web::HttpRequest;
+use comrak::{
+    markdown_to_html,
+    options::{Extension, Parse, Render},
+    Options,
+};
 use lazy_static::lazy_static;
 use log::debug;
 
@@ -95,6 +100,20 @@ pub fn view_count_to_string_exact(count: &i64) -> String {
         .collect::<Result<Vec<&str>, _>>()
         .unwrap()
         .join(",")
+}
+
+pub fn to_html(text: &str) -> String {
+    markdown_to_html(
+        text,
+        &Options {
+            extension: Extension {
+                autolink: true,
+                ..Default::default()
+            },
+            parse: Parse::default(),
+            render: Render::default(),
+        },
+    )
 }
 
 #[derive(Clone, Debug)]
