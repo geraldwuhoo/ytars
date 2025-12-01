@@ -38,10 +38,10 @@ FROM gcr.io/distroless/python3-debian12@sha256:afdfc6df9eb96cf65576d4d59af48c4b5
 COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/ytars /usr/bin/ytars
 COPY --from=builder /usr/lib/ssl/ /usr/local/ssl/
 COPY --from=builder /etc/ssl/ /etc/ssl/
-COPY --from=python-builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=python-builder /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
 COPY --from=deno /deno /usr/bin/deno
 COPY download.py /usr/bin/download.py
-ENV PYTHONPATH /usr/local/lib/python3.13/site-packages
+ENV PYTHONPATH /usr/local/lib/python3.14/site-packages
 ENV ENABLE_YT_DLP true
 ENV YT_DLP_SCRIPT_PATH /usr/bin/download.py
 
