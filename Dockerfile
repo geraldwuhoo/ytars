@@ -25,7 +25,7 @@ ARG CI_COMMIT_SHORT_SHA
 RUN cargo build --release --target x86_64-unknown-linux-musl --bin ytars
 
 # Build Python dependencies
-FROM docker.io/library/python:3.13.9-slim-bookworm AS python-builder
+FROM docker.io/library/python:3.14.0-slim-bookworm AS python-builder
 WORKDIR /usr/src
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
