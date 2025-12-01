@@ -37,6 +37,8 @@
           python3
           python3Packages.yt-dlp
           python3Packages.pyyaml
+          python3Packages.curl-cffi # Needed for full yt-dlp support
+          deno # Needed for full yt-dlp support
           pre-commit
           hadolint
         ];

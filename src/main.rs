@@ -8,6 +8,7 @@ use log::{error, info};
 use sqlx::postgres::PgPoolOptions;
 use std::{
     path::Path,
+    process::Command,
     sync::{atomic::AtomicBool, Arc},
     time::Duration,
 };
@@ -38,6 +39,22 @@ struct Args {
     /// Interval to scan for new videos (in seconds)
     #[arg(long, env, default_value_t = 3600)]
     scan_interval: u64,
+
+    /// Enable yt-dlp download script (requires Python and yt-dlp installed)
+    #[arg(long, env, default_value_t = false, requires_all=["yt_dlp_script_path", "yt_dlp_download_path", "yt_dlp_list_path"])]
+    enable_yt_dlp: bool,
+
+    /// Path to yt-dlp download script
+    #[arg(long, env)]
+    yt_dlp_script_path: Option<String>,
+
+    /// Path to download videos with yt-dlp download script
+    #[arg(long, env)]
+    yt_dlp_download_path: Option<String>,
+
+    /// Path to list of channels to download
+    #[arg(long, env)]
+    yt_dlp_list_path: Option<String>,
 
     /// Port to bind to
     #[arg(long, env, default_value_t = 8080)]
@@ -89,6 +106,33 @@ async fn main() -> Result<(), YtarsError> {
 
         async move {
             loop {
+                if args.enable_yt_dlp {
+                    info!("Background download: Downloading channels");
+                    let _ = Command::new("python")
+                        .arg(
+                            args.yt_dlp_script_path
+                                .as_deref()
+                                .expect("YT_DLP_SCRIPT_PATH not configured"),
+                        )
+                        .arg("--path")
+                        .arg(
+                            args.yt_dlp_download_path
+                                .as_deref()
+                                .expect("YT_DLP_DOWNLOAD_PATH not configured"),
+                        )
+                        .arg("--list")
+                        .arg(
+                            args.yt_dlp_list_path
+                                .as_deref()
+                                .expect("YT_DLP_LIST_PATH not configured"),
+                        )
+                        .arg("--quiet")
+                        .spawn()
+                        .expect("Failed to start Python download script")
+                        .wait()
+                        .expect("Failed to run Python download script");
+                }
+
                 info!("Background scan: Scanning");
                 match scan_full(
                     Arc::clone(&video_path),
