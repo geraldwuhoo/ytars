@@ -29,7 +29,7 @@ variables:
 .lint:
   extends: .cache
   stage: lint
-  image: docker.io/library/rust:1.91.1
+  image: docker.io/library/rust:1.91.1-bookworm
   before_script:
     - cargo version
     - rustup component add clippy
@@ -38,7 +38,7 @@ variables:
 .build_binary:
   extends: .cache
   stage: build
-  image: docker.io/library/rust:1.91.1
+  image: docker.io/library/rust:1.91.1-bookworm
   needs: &build_needs
     - lint:clippy
     - lint:format
@@ -91,8 +91,21 @@ variables:
   image:
     name: cgr.dev/chainguard/crane:latest-dev
     entrypoint: [""]
+  before_script:
+    - export IMAGE_ARTIFACT="$([ -z $FINAL_IMAGE ] && echo "image-scratch-final.tar" || echo "image-python-final.tar")"
+    - echo -e "Using $IMAGE_ARTIFACT"
   needs:
-    - build:container
+    - job: build:container
+      parallel:
+        matrix:
+          - FINAL_IMAGE:
+              - scratch-final
+              - python-final
+  parallel:
+    matrix:
+      - FINAL_IMAGE:
+          - "" # Equivalent to scratch-final
+          - python-final
 
 lint:clippy:
   extends:
@@ -133,14 +146,20 @@ build:container:
       --cache-ttl 168h0m0s
       --tag ${CI_PROJECT_NAME}
       --file Dockerfile
+      --build-arg "FINAL_IMAGE=${FINAL_IMAGE}"
       .
-    - buildah push localhost/${CI_PROJECT_NAME} docker-archive:image.tar
+    - buildah push localhost/${CI_PROJECT_NAME} docker-archive:image-${FINAL_IMAGE}.tar
   artifacts:
     untracked: false
     expire_in: 1 day
     paths:
-      - image.tar
+      - image-${FINAL_IMAGE}.tar
     when: on_success
+  parallel:
+    matrix:
+      - FINAL_IMAGE:
+          - scratch-final
+          - python-final
 
 build:binary:gnu:
   extends:
@@ -166,8 +185,8 @@ push:
   extends: .push
   script:
     - crane auth login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - crane push image.tar ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
-    - crane push image.tar ${CI_REGISTRY_IMAGE}:latest
+    - crane push $IMAGE_ARTIFACT ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}${FINAL_IMAGE}
+    - crane push $IMAGE_ARTIFACT ${CI_REGISTRY_IMAGE}:latest${FINAL_IMAGE}
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
@@ -177,8 +196,8 @@ push:release:
     - .release
   script:
     - crane auth login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - crane push image.tar ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
-    - crane push image.tar ${CI_REGISTRY_IMAGE}:stable
+    - crane push $IMAGE_ARTIFACT ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}${FINAL_IMAGE}
+    - crane push $IMAGE_ARTIFACT ${CI_REGISTRY_IMAGE}:stable${FINAL_IMAGE}
 
 release:
   extends: .release
