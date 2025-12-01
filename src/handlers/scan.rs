@@ -30,10 +30,6 @@ use crate::structures::{
 pub struct ScanParams {
     #[serde(default = "_default_false")]
     overwrite: bool,
-    #[serde(default = "_default_false")]
-    dislikes: bool,
-    #[serde(default = "_default_false")]
-    thumbnails: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -118,7 +114,6 @@ async fn populate_videos_in_channel(
     path: &Path,
     sanitized_channel: String,
     overwrite: bool,
-    regenerate_thumbnails: bool,
     pool: &PgPool,
 ) -> Result<(u32, u32), YtarsError> {
     let paths = fs::read_dir(path.join(sanitized_channel))?
@@ -226,40 +221,38 @@ async fn populate_videos_in_channel(
             debug!("Video {} exists and overwrite not set, skipping", filestem,);
         }
 
-        if regenerate_thumbnails {
-            if let Some(video) = sqlx::query!("SELECT id FROM video WHERE filestem = $1;", filestem)
-                .fetch_optional(pool)
-                .await?
-            {
-                let thumbnail_path = full_path.with_extension("webp");
-                let thumbnail_path = if thumbnail_path.exists() {
-                    thumbnail_path
-                } else {
-                    full_path.with_extension("jpg")
-                };
-                let video_thumbnail =
-                    sqlx::query!("SELECT id FROM video_thumbnail WHERE id = $1;", video.id)
-                        .fetch_optional(pool)
-                        .await?;
+        if let Some(video) = sqlx::query!("SELECT id FROM video WHERE filestem = $1;", filestem)
+            .fetch_optional(pool)
+            .await?
+        {
+            let thumbnail_path = full_path.with_extension("webp");
+            let thumbnail_path = if thumbnail_path.exists() {
+                thumbnail_path
+            } else {
+                full_path.with_extension("jpg")
+            };
+            let video_thumbnail =
+                sqlx::query!("SELECT id FROM video_thumbnail WHERE id = $1;", video.id)
+                    .fetch_optional(pool)
+                    .await?;
 
-                if overwrite || video_thumbnail.is_none() {
-                    info!("Resizing thumbnail at {}", thumbnail_path.display());
-                    let resized_thumbnail =
-                        thumbnail_image(320, 180, Some(ImageFormat::Jpeg), &thumbnail_path).await?;
-                    sqlx::query_as!(
-                        VideoThumbnailModel,
-                        r#"INSERT INTO video_thumbnail (id, thumbnail)
+            if overwrite || video_thumbnail.is_none() {
+                info!("Resizing thumbnail at {}", thumbnail_path.display());
+                let resized_thumbnail =
+                    thumbnail_image(320, 180, Some(ImageFormat::Jpeg), &thumbnail_path).await?;
+                sqlx::query_as!(
+                    VideoThumbnailModel,
+                    r#"INSERT INTO video_thumbnail (id, thumbnail)
                         VALUES ($1, $2)
                         ON CONFLICT (id)
                         DO UPDATE
                         SET
                             thumbnail=$2"#,
-                        video.id,
-                        resized_thumbnail,
-                    )
-                    .execute(pool)
-                    .await?;
-                }
+                    video.id,
+                    resized_thumbnail,
+                )
+                .execute(pool)
+                .await?;
             }
         }
     }
@@ -270,7 +263,6 @@ async fn populate_videos_in_channel(
 async fn populate_channel_in_db(
     path: &PathBuf,
     overwrite: bool,
-    regenerate_thumbnails: bool,
     pool: &PgPool,
 ) -> Result<(u32, u32), YtarsError> {
     if overwrite {
@@ -311,7 +303,7 @@ async fn populate_channel_in_db(
         .fetch_optional(pool)
         .await?;
 
-        if overwrite || regenerate_thumbnails || channel.is_none() {
+        if overwrite || channel.is_none() {
             let mut json_paths = glob(
                 path.join(channel_name)
                     .join(format!("{} - Videos *.info.json", channel_name))
@@ -350,31 +342,29 @@ async fn populate_channel_in_db(
             .execute(pool)
             .await?;
 
-            if regenerate_thumbnails {
-                info!("Resizing thumbnail at {}", thumbnail_path.display());
-                let channel_thumbnail = sqlx::query!(
-                    "SELECT id FROM channel_thumbnail WHERE id=$1",
-                    yt_channel.id,
-                )
-                .fetch_optional(pool)
-                .await?;
+            info!("Resizing thumbnail at {}", thumbnail_path.display());
+            let channel_thumbnail = sqlx::query!(
+                "SELECT id FROM channel_thumbnail WHERE id=$1",
+                yt_channel.id,
+            )
+            .fetch_optional(pool)
+            .await?;
 
-                if overwrite || channel_thumbnail.is_none() {
-                    let resized_thumbnail = thumbnail_image(50, 50, None, &thumbnail_path).await?;
-                    sqlx::query_as!(
-                        ChannelThumbnailModel,
-                        r#"INSERT INTO channel_thumbnail (id, thumbnail)
+            if overwrite || channel_thumbnail.is_none() {
+                let resized_thumbnail = thumbnail_image(50, 50, None, &thumbnail_path).await?;
+                sqlx::query_as!(
+                    ChannelThumbnailModel,
+                    r#"INSERT INTO channel_thumbnail (id, thumbnail)
                             VALUES ($1, $2)
                             ON CONFLICT (id)
                             DO UPDATE
                             SET
                                 thumbnail=$2"#,
-                        yt_channel.id,
-                        resized_thumbnail,
-                    )
-                    .execute(pool)
-                    .await?;
-                }
+                    yt_channel.id,
+                    resized_thumbnail,
+                )
+                .execute(pool)
+                .await?;
             }
         } else {
             debug!(
@@ -383,19 +373,56 @@ async fn populate_channel_in_db(
             );
         }
 
-        let (channel_scan_count, channel_all_count) = populate_videos_in_channel(
-            path,
-            channel_name.to_string(),
-            overwrite,
-            regenerate_thumbnails,
-            pool,
-        )
-        .await?;
+        let (channel_scan_count, channel_all_count) =
+            populate_videos_in_channel(path, channel_name.to_string(), overwrite, pool).await?;
         scan_count += channel_scan_count;
         all_count += channel_all_count;
     }
 
     Ok((scan_count, all_count))
+}
+
+pub async fn scan_full(
+    video_path: Arc<PathBuf>,
+    overwrite: bool,
+    pool: PgPool,
+    scanning: Arc<AtomicBool>,
+) -> Result<String, YtarsError> {
+    let status;
+    if scanning.load(Ordering::Acquire) {
+        status = "Already running a scan, please wait until complete";
+    } else {
+        status = if overwrite {
+            "Force scan started"
+        } else {
+            "Scan started"
+        };
+        actix_web::rt::spawn({
+            // These are all Arcs, either explicitly or internally
+            let video_path = Arc::clone(&video_path);
+            let pool = pool.clone();
+            let scanning = Arc::clone(&scanning);
+
+            async move {
+                scanning.store(true, Ordering::Release);
+                // Add all videos and create thumbnails
+                match populate_channel_in_db(&video_path, overwrite, &pool).await {
+                    Ok((scan_count, all_count)) => {
+                        info!("Finished scan: {} added, {} scanned", scan_count, all_count)
+                    }
+                    Err(e) => info!("Error scanning: {}", e),
+                };
+                // Add all dislikes for videos
+                match get_all_dislikes(&pool).await {
+                    Ok(pull_count) => info!("Finished dislikes: {} added", pull_count),
+                    Err(e) => info!("Error scanning: {}", e),
+                }
+                scanning.store(false, Ordering::Release);
+            }
+        });
+    }
+
+    Ok(status.to_string())
 }
 
 #[get("/scan")]
@@ -406,39 +433,16 @@ pub async fn scan_handler(
     scanning: web::Data<Arc<AtomicBool>>,
 ) -> Result<HttpResponse, YtarsError> {
     let overwrite = params.overwrite;
-    let status;
-    if scanning.load(Ordering::Acquire) {
-        status = "Already running a scan, please wait until complete";
-    } else {
-        status = if overwrite {
-            "Force scan started"
-        } else {
-            "Scan started"
-        };
-        actix_web::rt::spawn(async move {
-            scanning.store(true, Ordering::Release);
-            if params.dislikes {
-                match get_all_dislikes(&pool).await {
-                    Ok(pull_count) => {
-                        info!("Finished dislikes: {} added", pull_count)
-                    }
-                    Err(e) => info!("Error scanning: {}", e),
-                }
-            } else {
-                match populate_channel_in_db(&video_path, overwrite, params.thumbnails, &pool).await
-                {
-                    Ok((scan_count, all_count)) => {
-                        info!("Finished scan: {} added, {} scanned", scan_count, all_count)
-                    }
-                    Err(e) => info!("Error scanning: {}", e),
-                };
-            }
-            scanning.store(false, Ordering::Release);
-        });
-    }
+    let status = scan_full(
+        (*video_path).clone(),
+        overwrite,
+        (**pool).clone(),
+        (**scanning).clone(),
+    )
+    .await?;
     info!("{}", status);
 
-    let scan = ScanTemplate { status };
+    let scan = ScanTemplate { status: &status };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
         .body(scan.render()?))
