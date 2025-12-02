@@ -106,6 +106,9 @@ async fn main() -> Result<(), YtarsError> {
 
         async move {
             loop {
+                info!("Background scan: Sleeping");
+                sleep(Duration::from_secs(args.scan_interval)).await;
+
                 if args.enable_yt_dlp {
                     info!("Background download: Downloading channels");
                     let _ = Command::new("python")
@@ -145,9 +148,6 @@ async fn main() -> Result<(), YtarsError> {
                     Ok(status) => info!("Background scan: {}", status),
                     Err(e) => error!("Background scan: Failed to scan: {}", e),
                 }
-
-                info!("Background scan: Sleeping");
-                sleep(Duration::from_secs(args.scan_interval)).await;
             }
         }
     });
