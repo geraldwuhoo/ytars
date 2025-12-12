@@ -126,7 +126,7 @@ lint:format:
 build:container:
   stage: build
   image:
-    name: quay.io/buildah/stable:v1.42.1
+    name: quay.io/buildah/stable:v1.42.2
   variables:
     STORAGE_DRIVER: vfs
     BUILDAH_FORMAT: docker
