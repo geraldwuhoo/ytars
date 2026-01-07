@@ -1,7 +1,7 @@
 ARG FINAL_IMAGE=scratch-final
 
 # chef
-FROM docker.io/library/rust:1.91.1-bookworm AS chef
+FROM docker.io/library/rust:1.92.0-bookworm AS chef
 RUN rustup target add x86_64-unknown-linux-musl && \
     apt-get update && \
     apt-get install -y --no-install-recommends musl-dev=1.2.3-1 && \
