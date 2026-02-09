@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM docker.io/denoland/deno:bin-2.5.6 AS deno
 
 # ffmpeg dependency for yt-dlp
-FROM docker.io/library/alpine:3.23.2 AS ffmpeg
+FROM docker.io/library/alpine:3.23.3 AS ffmpeg
 WORKDIR /
 SHELL [ "/bin/ash", "-o", "pipefail", "-c" ]
 RUN wget -q "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz" -O- | gunzip - > ffmpeg && \
