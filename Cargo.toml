@@ -9,7 +9,7 @@ edition = "2021"
 actix-files = "0.6.5"
 actix-web = { version = "4.5.1", features = ["cookies"] }
 actix-web-static-files = { version = "4.1.1", features = ["static-files-03"] }
-askama = "0.14.0"
+askama = "0.15.0"
 clap = { version = "4.5.4", features = ["derive", "env"] }
 comrak = "0.49.0"
 env_logger = "0.11.3"
