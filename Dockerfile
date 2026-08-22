@@ -41,7 +41,7 @@ RUN wget -q "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.
     chmod +x ./ffmpeg
 
 # Distroless image to run Python
-FROM gcr.io/distroless/python3-debian12@sha256:8ce6bba3f793ba7d834467dfe18983c42f9b223604970273e9e3a22b1891fc27 AS python-final
+FROM gcr.io/distroless/python3-debian12@sha256:2fdb05402a2cf21cf78fdb3ba4c5db167241e9e498140f5bf689d7efb773731f AS python-final
 COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/ytars /usr/bin/ytars
 COPY --from=builder /usr/lib/ssl/ /usr/local/ssl/
 COPY --from=builder /etc/ssl/ /etc/ssl/
