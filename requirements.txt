@@ -1,2 +1,2 @@
 PyYAML==6.0.3
-yt-dlp[default,curl-cffi]==2025.12.8
+yt-dlp[default,curl-cffi]==2026.8.19
