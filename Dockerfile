@@ -34,14 +34,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM docker.io/denoland/deno:bin-2.5.6 AS deno
 
 # ffmpeg dependency for yt-dlp
-FROM docker.io/library/alpine:3.24.1 AS ffmpeg
+FROM docker.io/library/alpine:3.23.4 AS ffmpeg
 WORKDIR /
 SHELL [ "/bin/ash", "-o", "pipefail", "-c" ]
 RUN wget -q "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz" -O- | gunzip - > ffmpeg && \
     chmod +x ./ffmpeg
 
 # Distroless image to run Python
-FROM gcr.io/distroless/python3-debian12@sha256:e19b29c8473bed88f8b6e31e49d1133d1bdb2bf9c0af7e82d0e7434f7c036a63 AS python-final
+FROM gcr.io/distroless/python3-debian12@sha256:2fdb05402a2cf21cf78fdb3ba4c5db167241e9e498140f5bf689d7efb773731f AS python-final
 COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/ytars /usr/bin/ytars
 COPY --from=builder /usr/lib/ssl/ /usr/local/ssl/
 COPY --from=builder /etc/ssl/ /etc/ssl/
