@@ -47,7 +47,7 @@ async fn get_full_path(
         return not_found;
     }
 
-    match NamedFile::open_async(full_path).await {
+    match NamedFile::open(full_path) {
         Ok(file) => Ok(file.into_response(&req)),
         Err(e) => match e.kind() {
             std::io::ErrorKind::NotFound => not_found,
