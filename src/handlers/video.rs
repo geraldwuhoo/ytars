@@ -97,7 +97,8 @@ pub async fn yt_video_handler(
     .fetch_one(pool.get_ref())
     .await?;
 
-    let format = format_description::parse("[month repr:long] [day padding:none], [year]")?;
+    let format =
+        format_description::parse_borrowed::<3>("[month repr:long] [day padding:none], [year]")?;
     let upload_date = &video.upload_date.format(&format)?;
 
     let vid = VideoTemplate {
