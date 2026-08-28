@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO video_thumbnail (id, thumbnail)\n                VALUES ($1, $2)\n                ON CONFLICT (id)\n                DO UPDATE\n                SET\n                    thumbnail=$2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Bytea"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e63a5b6f7dbd23b5603c810a72923eafe654f0b43cc20ad6c82df4de8d7bfeb0"
+}

@@ -80,14 +80,6 @@ pub struct VideoJson {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-#[allow(non_snake_case)]
-pub struct VideoLikesDislikes {
-    pub id: String,
-    pub likes: Option<i32>,
-    pub dislikes: Option<i32>,
-}
-
-#[derive(Debug, sqlx::FromRow)]
 #[allow(non_snake_case, dead_code)]
 pub struct VideoListModel {
     pub id: String,

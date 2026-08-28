@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT filestem, id FROM video",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "filestem",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "video",
+            "name": "filestem"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "id",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "video",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "5c975d5f683aa9a45f92cbbb5284a5a6a5700d8448553a7f0cf26bbdb918b3d4"
+}
