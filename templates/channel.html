@@ -1,6 +1,6 @@
-{% let suffix -%}
-{% let tab -%}
-{% let video_type_param -%}
+{% declare suffix -%}
+{% declare tab -%}
+{% declare video_type_param -%}
 {% match video_type -%}
     {% when VideoType::Short -%}
         {% let suffix = " (Shorts)" -%}

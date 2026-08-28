@@ -12,7 +12,7 @@
                 <div class="left">
                     <a href="/">[ytars]</a>
                     &gt;
-                    {% let path -%}
+                    {% declare path -%}
                     {% let channel_path = "/channel/{}"|format(channel.id) -%}
                     {% if feed -%}
                         {% let path = "/feed"|format() -%}
@@ -40,8 +40,8 @@
             </div>
         </header>
         <main>
-            {% let class -%}
-            {% let video_loop -%}
+            {% declare class -%}
+            {% declare video_loop -%}
             {% match video.video_type -%}
                 {% when VideoType::Short -%}
                     {% let class = "short" -%}
