@@ -12,6 +12,7 @@ use crate::structures::{
 };
 
 mod filters {
+    #[askama::filter_fn]
     pub fn pretty_print_cookie<T: std::fmt::Display>(
         s: T,
         _: &dyn askama::Values,
