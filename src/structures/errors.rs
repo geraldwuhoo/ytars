@@ -47,6 +47,9 @@ pub enum YtarsError {
     #[error("image error\n{0}")]
     ImageError(#[from] image::ImageError),
 
+    #[error("blocking task error\n{0}")]
+    BlockingError(#[from] actix_web::error::BlockingError),
+
     #[error("other error\n{0}")]
     Other(String),
 }

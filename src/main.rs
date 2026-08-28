@@ -111,29 +111,35 @@ async fn main() -> Result<(), YtarsError> {
 
                 if args.enable_yt_dlp {
                     info!("Background download: Downloading channels");
-                    let _ = Command::new("python")
-                        .arg(
-                            args.yt_dlp_script_path
-                                .as_deref()
-                                .expect("YT_DLP_SCRIPT_PATH not configured"),
-                        )
-                        .arg("--path")
-                        .arg(
-                            args.yt_dlp_download_path
-                                .as_deref()
-                                .expect("YT_DLP_DOWNLOAD_PATH not configured"),
-                        )
-                        .arg("--list")
-                        .arg(
-                            args.yt_dlp_list_path
-                                .as_deref()
-                                .expect("YT_DLP_LIST_PATH not configured"),
-                        )
-                        .arg("--quiet")
-                        .spawn()
-                        .expect("Failed to start Python download script")
-                        .wait()
-                        .expect("Failed to run Python download script");
+                    let script_path = args
+                        .yt_dlp_script_path
+                        .clone()
+                        .expect("YT_DLP_SCRIPT_PATH not configured");
+                    let download_path = args
+                        .yt_dlp_download_path
+                        .clone()
+                        .expect("YT_DLP_DOWNLOAD_PATH not configured");
+                    let list_path = args
+                        .yt_dlp_list_path
+                        .clone()
+                        .expect("YT_DLP_LIST_PATH not configured");
+
+                    // Waiting on the child process blocks the whole runtime it
+                    // runs on, for as long as the download takes.
+                    let _ = web::block(move || {
+                        Command::new("python")
+                            .arg(script_path)
+                            .arg("--path")
+                            .arg(download_path)
+                            .arg("--list")
+                            .arg(list_path)
+                            .arg("--quiet")
+                            .spawn()
+                            .expect("Failed to start Python download script")
+                            .wait()
+                            .expect("Failed to run Python download script")
+                    })
+                    .await;
                 }
 
                 info!("Background scan: Scanning");

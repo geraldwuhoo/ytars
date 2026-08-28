@@ -6,27 +6,57 @@
       {
         "ordinal": 0,
         "name": "id",
-        "type_info": "Varchar"
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "channel",
+            "name": "id"
+          }
+        }
       },
       {
         "ordinal": 1,
         "name": "name",
-        "type_info": "Varchar"
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "channel",
+            "name": "name"
+          }
+        }
       },
       {
         "ordinal": 2,
         "name": "sanitized_name",
-        "type_info": "Varchar"
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "channel",
+            "name": "sanitized_name"
+          }
+        }
       },
       {
         "ordinal": 3,
         "name": "description",
-        "type_info": "Text"
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "channel",
+            "name": "description"
+          }
+        }
       },
       {
         "ordinal": 4,
         "name": "channel_follower_count",
-        "type_info": "Int4"
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "channel",
+            "name": "channel_follower_count"
+          }
+        }
       }
     ],
     "parameters": {

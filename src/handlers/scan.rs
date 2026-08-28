@@ -50,14 +50,21 @@ async fn thumbnail_image(
     width: u32,
     height: u32,
     image_format: Option<ImageFormat>,
-    path: &PathBuf,
+    path: &Path,
 ) -> Result<Vec<u8>, YtarsError> {
-    let image = ImageReader::open(path)?.with_guessed_format()?.decode()?;
-    let image = image.resize_to_fill(width, height, FilterType::Triangle);
-    let image_format = image_format.unwrap_or(ImageFormat::WebP);
-    let mut image_bytes = Vec::new();
-    image.write_to(&mut Cursor::new(&mut image_bytes), image_format)?;
-    Ok(image_bytes)
+    // Decoding, resizing and re-encoding are CPU-bound and never yield. Actix
+    // workers each run a single-threaded runtime, so doing this inline starves
+    // every other request pinned to the same worker.
+    let path = path.to_path_buf();
+    web::block(move || {
+        let image = ImageReader::open(path)?.with_guessed_format()?.decode()?;
+        let image = image.resize_to_fill(width, height, FilterType::Triangle);
+        let image_format = image_format.unwrap_or(ImageFormat::WebP);
+        let mut image_bytes = Vec::new();
+        image.write_to(&mut Cursor::new(&mut image_bytes), image_format)?;
+        Ok::<_, YtarsError>(image_bytes)
+    })
+    .await?
 }
 
 async fn get_all_dislikes(pool: &PgPool) -> Result<u32, YtarsError> {
@@ -116,14 +123,21 @@ async fn populate_videos_in_channel(
     overwrite: bool,
     pool: &PgPool,
 ) -> Result<(u32, u32), YtarsError> {
-    let paths = fs::read_dir(path.join(sanitized_channel))?
-        .filter_map(|r| r.ok())
-        .map(|r| r.path())
-        .filter(|r| {
-            r.is_file()
-                && (r.extension().unwrap_or_default() == "webm"
-                    || r.extension().unwrap_or_default() == "mp4")
-        });
+    let channel_dir = path.join(sanitized_channel);
+    let paths: Vec<PathBuf> = web::block(move || {
+        Ok::<_, std::io::Error>(
+            fs::read_dir(channel_dir)?
+                .filter_map(|r| r.ok())
+                .map(|r| r.path())
+                .filter(|r| {
+                    r.is_file()
+                        && (r.extension().unwrap_or_default() == "webm"
+                            || r.extension().unwrap_or_default() == "mp4")
+                })
+                .collect(),
+        )
+    })
+    .await??;
 
     let (mut scan_count, mut all_count) = (0u32, 0u32);
     for full_path in paths {
@@ -151,7 +165,8 @@ async fn populate_videos_in_channel(
 
         if overwrite || video.is_none() {
             info!("Working on {}", filestem);
-            let jsoncontents = fs::read_to_string(full_path.with_extension("info.json"))?;
+            let info_json_path = full_path.with_extension("info.json");
+            let jsoncontents = web::block(move || fs::read_to_string(info_json_path)).await??;
             let video: VideoJson = serde_json::from_str(&jsoncontents)?;
             let duration_string = if video.duration_string.contains(':') {
                 video.duration_string.clone()
@@ -261,7 +276,7 @@ async fn populate_videos_in_channel(
 }
 
 async fn populate_channel_in_db(
-    path: &PathBuf,
+    path: &Path,
     overwrite: bool,
     pool: &PgPool,
 ) -> Result<(u32, u32), YtarsError> {
@@ -273,10 +288,17 @@ async fn populate_channel_in_db(
     }
 
     debug!("Populating database...");
-    let channels = fs::read_dir(path)?
-        .filter_map(|r| r.ok())
-        .map(|r| r.path())
-        .filter(|r| r.is_dir());
+    let root_dir = path.to_path_buf();
+    let channels: Vec<PathBuf> = web::block(move || {
+        Ok::<_, std::io::Error>(
+            fs::read_dir(root_dir)?
+                .filter_map(|r| r.ok())
+                .map(|r| r.path())
+                .filter(|r| r.is_dir())
+                .collect(),
+        )
+    })
+    .await??;
 
     let (mut scan_count, mut all_count) = (0u32, 0u32);
     for channel_path in channels {
@@ -304,22 +326,27 @@ async fn populate_channel_in_db(
         .await?;
 
         if overwrite || channel.is_none() {
-            let mut json_paths = glob(
-                path.join(channel_name)
-                    .join(format!("{} - Videos *.info.json", channel_name))
-                    .to_str()
-                    .ok_or_else(|| {
-                        YtarsError::Other("Failed to create json glob path".to_string())
-                    })?,
-            )?;
+            let json_glob = path
+                .join(channel_name)
+                .join(format!("{} - Videos *.info.json", channel_name))
+                .to_str()
+                .ok_or_else(|| YtarsError::Other("Failed to create json glob path".to_string()))?
+                .to_string();
 
-            let json_path = json_paths.next().ok_or(YtarsError::Other(format!(
+            let json_path = web::block(move || {
+                glob(&json_glob)?
+                    .next()
+                    .transpose()
+                    .map_err(YtarsError::from)
+            })
+            .await??
+            .ok_or(YtarsError::Other(format!(
                 "No results returned for glob {}",
                 channel_name
-            )))??;
+            )))?;
             let thumbnail_path = json_path.with_extension("").with_extension("jpg");
 
-            let json_contents = fs::read_to_string(json_path)?;
+            let json_contents = web::block(move || fs::read_to_string(json_path)).await??;
             let yt_channel = serde_json::from_str::<ChannelModel>(&json_contents)?;
 
             sqlx::query_as!(

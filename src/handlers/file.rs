@@ -47,7 +47,8 @@ async fn get_full_path(
         return not_found;
     }
 
-    match NamedFile::open(full_path) {
+    // Opening the file is blocking; keep it off the single-threaded worker.
+    match web::block(move || NamedFile::open(full_path)).await? {
         Ok(file) => Ok(file.into_response(&req)),
         Err(e) => match e.kind() {
             std::io::ErrorKind::NotFound => not_found,
