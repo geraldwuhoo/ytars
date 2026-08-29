@@ -6,7 +6,7 @@ use actix_web_static_files::ResourceFiles;
 use clap::Parser;
 use log::{error, info};
 use sqlx::postgres::PgPoolOptions;
-use std::{path::Path, process::Command, sync::Arc, time::Duration};
+use std::{path::Path, process::Command, time::Duration};
 
 use crate::{
     handlers::{
@@ -15,7 +15,7 @@ use crate::{
         file::{index_handler, thumbnail_channel_handler, thumbnail_video_handler},
         home::home_handler,
         preferences::{preferences_get_handler, preferences_post_handler},
-        scan::{scan_full, scan_handler, ScanState},
+        scan::{scan_full, scan_handler},
         search::search_handler,
         video::yt_video_handler,
     },
@@ -86,7 +86,6 @@ struct Args {
 async fn main() -> Result<(), YtarsError> {
     let args = Args::parse();
     let video_path = Path::new(&args.video_path).canonicalize()?;
-    let scanning = Arc::new(ScanState::default());
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
@@ -101,9 +100,8 @@ async fn main() -> Result<(), YtarsError> {
     sqlx::migrate!().run(&pool).await?;
 
     actix_web::rt::spawn({
-        let video_path = Arc::new(video_path.clone());
+        let video_path = video_path.clone();
         let pool = pool.clone();
-        let scanning = Arc::clone(&scanning);
 
         async move {
             loop {
@@ -144,14 +142,7 @@ async fn main() -> Result<(), YtarsError> {
                 }
 
                 info!("Background scan: Scanning");
-                match scan_full(
-                    Arc::clone(&video_path),
-                    false,
-                    pool.clone(),
-                    Arc::clone(&scanning),
-                )
-                .await
-                {
+                match scan_full(video_path.clone(), false, pool.clone()).await {
                     Ok(status) => info!("Background scan: {}", status),
                     Err(e) => error!("Background scan: Failed to scan: {}", e),
                 }
@@ -159,13 +150,16 @@ async fn main() -> Result<(), YtarsError> {
         }
     });
 
+    // One shared handle per process rather than a fresh one per worker.
+    let video_path = web::Data::new(video_path);
+    let pool = web::Data::new(pool);
+
     Ok(HttpServer::new(move || {
         let generated = generate();
         App::new()
             .wrap(Logger::default())
-            .app_data(web::Data::new(video_path.clone()))
-            .app_data(web::Data::new(pool.clone()))
-            .app_data(web::Data::new(Arc::clone(&scanning)))
+            .app_data(video_path.clone())
+            .app_data(pool.clone())
             .service(home_handler)
             .service(preferences_get_handler)
             .service(preferences_post_handler)

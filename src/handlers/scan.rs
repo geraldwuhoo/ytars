@@ -16,7 +16,7 @@ use std::{
     path::{Path, PathBuf},
     sync::{
         atomic::{AtomicBool, AtomicI64, AtomicU32, AtomicU8, Ordering},
-        Arc, OnceLock,
+        OnceLock,
     },
 };
 use time::{macros::format_description, Date, OffsetDateTime};
@@ -82,7 +82,7 @@ impl From<u8> for ScanStage {
 /// Only the task that claimed the slot writes the counters, so relaxed
 /// ordering is enough: a reader may see a slightly stale count, never a torn
 /// one.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ScanState {
     running: AtomicBool,
     stage: AtomicU8,
@@ -96,7 +96,27 @@ pub struct ScanState {
     dislikes_total: AtomicU32,
 }
 
+/// The one scan slot in the process. A static rather than something passed
+/// around: there is a single video library, a single scan at a time, and both
+/// the handler and the background loop in `main` have to reach it.
+static SCAN_STATE: ScanState = ScanState::new();
+
 impl ScanState {
+    const fn new() -> Self {
+        Self {
+            running: AtomicBool::new(false),
+            stage: AtomicU8::new(ScanStage::Videos as u8),
+            started_at: AtomicI64::new(0),
+            channels_done: AtomicU32::new(0),
+            channels_total: AtomicU32::new(0),
+            videos_scanned: AtomicU32::new(0),
+            videos_added: AtomicU32::new(0),
+            thumbnails: AtomicU32::new(0),
+            dislikes_done: AtomicU32::new(0),
+            dislikes_total: AtomicU32::new(0),
+        }
+    }
+
     /// Claims the scan slot and zeroes the counters for the new run, or
     /// returns false if a scan is already running.
     fn begin(&self) -> bool {
@@ -184,11 +204,11 @@ fn format_elapsed(seconds: i64) -> String {
 
 /// Clears the scanning flag on every exit path, including a panic. Without this
 /// an early return would leave the flag set and block all later scans.
-struct ScanGuard(Arc<ScanState>);
+struct ScanGuard;
 
 impl Drop for ScanGuard {
     fn drop(&mut self) {
-        self.0.running.store(false, Ordering::Release);
+        SCAN_STATE.running.store(false, Ordering::Release);
     }
 }
 
@@ -694,12 +714,11 @@ async fn populate_channel_in_db(
 }
 
 pub async fn scan_full(
-    video_path: Arc<PathBuf>,
+    video_path: PathBuf,
     overwrite: bool,
     pool: PgPool,
-    scanning: Arc<ScanState>,
 ) -> Result<String, YtarsError> {
-    if !scanning.begin() {
+    if !SCAN_STATE.begin() {
         return Ok("Already running a scan, please wait until complete".to_string());
     }
 
@@ -708,27 +727,20 @@ pub async fn scan_full(
     } else {
         "Scan started"
     };
-    actix_web::rt::spawn({
-        // These are all Arcs, either explicitly or internally
-        let video_path = Arc::clone(&video_path);
-        let pool = pool.clone();
-        let scanning = Arc::clone(&scanning);
-
-        async move {
-            // Releases the flag on every exit path, including a panic.
-            let _guard = ScanGuard(Arc::clone(&scanning));
-            // Add all videos and create thumbnails
-            match populate_channel_in_db(&video_path, overwrite, &pool, &scanning).await {
-                Ok((scan_count, all_count)) => {
-                    info!("Finished scan: {} added, {} scanned", scan_count, all_count)
-                }
-                Err(e) => info!("Error scanning: {}", e),
-            };
-            // Add all dislikes for videos
-            match get_all_dislikes(&pool, &scanning).await {
-                Ok(pull_count) => info!("Finished dislikes: {} added", pull_count),
-                Err(e) => info!("Error scanning: {}", e),
+    actix_web::rt::spawn(async move {
+        // Releases the flag on every exit path, including a panic.
+        let _guard = ScanGuard;
+        // Add all videos and create thumbnails
+        match populate_channel_in_db(&video_path, overwrite, &pool, &SCAN_STATE).await {
+            Ok((scan_count, all_count)) => {
+                info!("Finished scan: {} added, {} scanned", scan_count, all_count)
             }
+            Err(e) => info!("Error scanning: {}", e),
+        };
+        // Add all dislikes for videos
+        match get_all_dislikes(&pool, &SCAN_STATE).await {
+            Ok(pull_count) => info!("Finished dislikes: {} added", pull_count),
+            Err(e) => info!("Error scanning: {}", e),
         }
     });
 
@@ -740,21 +752,14 @@ pub async fn scan_handler(
     params: web::Query<ScanParams>,
     video_path: web::Data<PathBuf>,
     pool: web::Data<PgPool>,
-    scanning: web::Data<Arc<ScanState>>,
 ) -> Result<HttpResponse, YtarsError> {
     let overwrite = params.overwrite;
-    let status = scan_full(
-        (*video_path).clone(),
-        overwrite,
-        (**pool).clone(),
-        (**scanning).clone(),
-    )
-    .await?;
+    let status = scan_full((**video_path).clone(), overwrite, (**pool).clone()).await?;
     info!("{}", status);
 
     let scan = ScanTemplate {
         status: &status,
-        progress: scanning.progress(),
+        progress: SCAN_STATE.progress(),
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
