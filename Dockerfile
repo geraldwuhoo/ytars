@@ -24,11 +24,18 @@ ARG CI_COMMIT_TAG
 ARG CI_COMMIT_SHORT_SHA
 RUN cargo build --release --target x86_64-unknown-linux-musl --bin ytars
 
-# Build Python dependencies
-FROM docker.io/library/python:3.14.7-slim-bookworm AS python-builder
+# Build Python dependencies.
+# NOTE: this interpreter version must match the one in the distroless
+# python3-debian12 runtime below (currently CPython 3.11). Compiled extensions
+# carry a cpython-3XX ABI tag, so a mismatch makes them silently unimportable
+# (curl_cffi and brotli both fail this way) while yt-dlp degrades quietly.
+FROM docker.io/library/python:3.11.16-slim-bookworm AS python-builder
 WORKDIR /usr/src
 COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# --target keeps pip/setuptools out of the copied tree, and --no-compile drops
+# the __pycache__ trees (regenerated on first run).
+RUN pip install --no-cache-dir --no-compile --target /site-packages -r requirements.txt && \
+    find /site-packages -name '__pycache__' -type d -prune -exec rm -rf {} +
 
 # Deno dependency for yt-dlp
 FROM docker.io/denoland/deno:bin-2.5.6 AS deno
@@ -37,27 +44,26 @@ FROM docker.io/denoland/deno:bin-2.5.6 AS deno
 FROM docker.io/library/alpine:3.23.4 AS ffmpeg
 WORKDIR /
 SHELL [ "/bin/ash", "-o", "pipefail", "-c" ]
-RUN wget -q "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz" -O- | gunzip - > ffmpeg && \
+RUN apk add --no-cache binutils=2.45.1-r0 && \
+    wget -q "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz" -O- | gunzip - > ffmpeg && \
+    strip --strip-all ./ffmpeg && \
     chmod +x ./ffmpeg
 
 # Distroless image to run Python
 FROM gcr.io/distroless/python3-debian12@sha256:2fdb05402a2cf21cf78fdb3ba4c5db167241e9e498140f5bf689d7efb773731f AS python-final
 COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/ytars /usr/bin/ytars
-COPY --from=builder /usr/lib/ssl/ /usr/local/ssl/
-COPY --from=builder /etc/ssl/ /etc/ssl/
-COPY --from=python-builder /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
+COPY --from=python-builder /site-packages /usr/local/lib/python3/site-packages
 COPY --from=deno /deno /usr/bin/deno
 COPY --from=ffmpeg /ffmpeg /usr/bin/ffmpeg
 COPY download.py /usr/bin/download.py
-ENV PYTHONPATH /usr/local/lib/python3.14/site-packages
-ENV ENABLE_YT_DLP true
-ENV YT_DLP_SCRIPT_PATH /usr/bin/download.py
+ENV PYTHONPATH=/usr/local/lib/python3/site-packages
+ENV ENABLE_YT_DLP=true
+ENV YT_DLP_SCRIPT_PATH=/usr/bin/download.py
 
 # Clean image
 FROM scratch AS scratch-final
 COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/ytars /usr/bin/ytars
-COPY --from=builder /usr/lib/ssl/ /usr/local/ssl/
-COPY --from=builder /etc/ssl/ /etc/ssl/
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 FROM ${FINAL_IMAGE}
 
