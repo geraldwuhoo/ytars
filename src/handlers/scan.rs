@@ -15,11 +15,11 @@ use std::{
     io::Cursor,
     path::{Path, PathBuf},
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicI64, AtomicU32, AtomicU8, Ordering},
         Arc, OnceLock,
     },
 };
-use time::{macros::format_description, Date};
+use time::{macros::format_description, Date, OffsetDateTime};
 
 use crate::structures::{
     errors::YtarsError,
@@ -50,13 +50,145 @@ fn thumbnail_concurrency() -> usize {
         .unwrap_or(4)
 }
 
+/// Which half of a scan is running. Kept as a `u8` so it lives in an atomic
+/// next to the counters instead of behind a lock.
+#[derive(Clone, Copy, Debug)]
+#[repr(u8)]
+enum ScanStage {
+    Videos = 0,
+    Dislikes = 1,
+}
+
+impl ScanStage {
+    fn label(self) -> &'static str {
+        match self {
+            ScanStage::Videos => "Scanning videos",
+            ScanStage::Dislikes => "Fetching likes/dislikes",
+        }
+    }
+}
+
+impl From<u8> for ScanStage {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => ScanStage::Dislikes,
+            _ => ScanStage::Videos,
+        }
+    }
+}
+
+/// The scan slot, plus counters for whichever scan holds it. Shared with the
+/// `/scan` handler so a page load during a scan can report how far it has got.
+/// Only the task that claimed the slot writes the counters, so relaxed
+/// ordering is enough: a reader may see a slightly stale count, never a torn
+/// one.
+#[derive(Debug, Default)]
+pub struct ScanState {
+    running: AtomicBool,
+    stage: AtomicU8,
+    started_at: AtomicI64,
+    channels_done: AtomicU32,
+    channels_total: AtomicU32,
+    videos_scanned: AtomicU32,
+    videos_added: AtomicU32,
+    thumbnails: AtomicU32,
+    dislikes_done: AtomicU32,
+    dislikes_total: AtomicU32,
+}
+
+impl ScanState {
+    /// Claims the scan slot and zeroes the counters for the new run, or
+    /// returns false if a scan is already running.
+    fn begin(&self) -> bool {
+        // Claim the slot atomically. The previous check-then-set was racy, and
+        // it set the flag inside the spawned task -- which under spawn_local
+        // does not run until the handler yields -- so a second request
+        // arriving in between would start a duplicate concurrent scan.
+        if self
+            .running
+            .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+            .is_err()
+        {
+            return false;
+        }
+
+        self.stage.store(ScanStage::Videos as u8, Ordering::Relaxed);
+        self.started_at.store(
+            OffsetDateTime::now_utc().unix_timestamp(),
+            Ordering::Relaxed,
+        );
+        for counter in [
+            &self.channels_done,
+            &self.channels_total,
+            &self.videos_scanned,
+            &self.videos_added,
+            &self.thumbnails,
+            &self.dislikes_done,
+            &self.dislikes_total,
+        ] {
+            counter.store(0, Ordering::Relaxed);
+        }
+        true
+    }
+
+    /// Progress of the scan in flight, or `None` when nothing is running.
+    /// Read as one snapshot so the template cannot see the counters move
+    /// underneath it.
+    pub fn progress(&self) -> Option<ScanProgress> {
+        if !self.running.load(Ordering::Acquire) {
+            return None;
+        }
+
+        let elapsed =
+            OffsetDateTime::now_utc().unix_timestamp() - self.started_at.load(Ordering::Relaxed);
+        Some(ScanProgress {
+            stage: ScanStage::from(self.stage.load(Ordering::Relaxed)).label(),
+            elapsed: format_elapsed(elapsed.max(0)),
+            channels_done: self.channels_done.load(Ordering::Relaxed),
+            channels_total: self.channels_total.load(Ordering::Relaxed),
+            videos_scanned: self.videos_scanned.load(Ordering::Relaxed),
+            videos_added: self.videos_added.load(Ordering::Relaxed),
+            thumbnails: self.thumbnails.load(Ordering::Relaxed),
+            dislikes_done: self.dislikes_done.load(Ordering::Relaxed),
+            dislikes_total: self.dislikes_total.load(Ordering::Relaxed),
+        })
+    }
+}
+
+/// A rendered snapshot of `ScanState`, handed to the scan template.
+#[derive(Debug)]
+pub struct ScanProgress {
+    stage: &'static str,
+    elapsed: String,
+    channels_done: u32,
+    channels_total: u32,
+    videos_scanned: u32,
+    videos_added: u32,
+    thumbnails: u32,
+    dislikes_done: u32,
+    dislikes_total: u32,
+}
+
+/// 95 -> "1m 35s". Whole seconds are plenty for a page the user refreshes by
+/// hand.
+fn format_elapsed(seconds: i64) -> String {
+    let (hours, minutes, seconds) = (seconds / 3600, (seconds / 60) % 60, seconds % 60);
+    if hours > 0 {
+        format!("{}h {}m {}s", hours, minutes, seconds)
+    } else if minutes > 0 {
+        format!("{}m {}s", minutes, seconds)
+    } else {
+        format!("{}s", seconds)
+    }
+}
+
 /// Clears the scanning flag on every exit path, including a panic. Without this
 /// an early return would leave the flag set and block all later scans.
-struct ScanGuard(Arc<AtomicBool>);
+struct ScanGuard(Arc<ScanState>);
 
 impl Drop for ScanGuard {
     fn drop(&mut self) {
-        self.0.store(false, Ordering::Release);
+        self.0.running.store(false, Ordering::Release);
     }
 }
 
@@ -78,6 +210,7 @@ struct LikesDislikes {
 #[template(path = "scan.html")]
 struct ScanTemplate<'a> {
     status: &'a str,
+    progress: Option<ScanProgress>,
 }
 
 async fn thumbnail_image(
@@ -101,7 +234,7 @@ async fn thumbnail_image(
     .await?
 }
 
-async fn get_all_dislikes(pool: &PgPool) -> Result<u32, YtarsError> {
+async fn get_all_dislikes(pool: &PgPool, state: &ScanState) -> Result<u32, YtarsError> {
     // Filter in the query rather than fetching every row and discarding most
     // of them in Rust on each scan.
     let videos = sqlx::query!(
@@ -110,8 +243,14 @@ async fn get_all_dislikes(pool: &PgPool) -> Result<u32, YtarsError> {
         WHERE likes IS NULL AND dislikes IS NULL"#,
     )
     .fetch_all(pool)
-    .await?
-    .into_iter();
+    .await?;
+
+    state
+        .stage
+        .store(ScanStage::Dislikes as u8, Ordering::Relaxed);
+    state
+        .dislikes_total
+        .store(videos.len() as u32, Ordering::Relaxed);
 
     let mut pull_count: u32 = 0;
 
@@ -141,6 +280,7 @@ async fn get_all_dislikes(pool: &PgPool) -> Result<u32, YtarsError> {
             )
             .execute(pool)
             .await?;
+            state.dislikes_done.fetch_add(1, Ordering::Relaxed);
             Ok(())
         })
         .await?;
@@ -251,6 +391,7 @@ async fn populate_videos_in_channel(
     // in-memory instead of a database round trip each.
     existing_videos: &mut HashMap<String, String>,
     existing_thumbnails: &mut HashSet<String>,
+    state: &ScanState,
 ) -> Result<(u32, u32), YtarsError> {
     let channel_dir = path.join(sanitized_channel);
     let paths: Vec<PathBuf> = web::block(move || {
@@ -289,6 +430,7 @@ async fn populate_videos_in_channel(
             })?
             .to_string();
         all_count += 1;
+        state.videos_scanned.fetch_add(1, Ordering::Relaxed);
 
         let known_id = existing_videos.get(&filestem).cloned();
 
@@ -336,6 +478,7 @@ async fn populate_videos_in_channel(
                 flush_videos(pool, &mut pending_videos).await?;
             }
             scan_count += 1;
+            state.videos_added.fetch_add(1, Ordering::Relaxed);
         } else {
             debug!("Video {} exists and overwrite not set, skipping", filestem,);
         }
@@ -371,6 +514,7 @@ async fn populate_videos_in_channel(
                 info!("Resizing thumbnail at {}", thumbnail_path.display());
                 let resized_thumbnail =
                     thumbnail_image(320, 180, Some(ImageFormat::Jpeg), &thumbnail_path).await?;
+                state.thumbnails.fetch_add(1, Ordering::Relaxed);
                 Ok::<_, YtarsError>((video_id, resized_thumbnail))
             })
             .buffer_unordered(concurrency)
@@ -390,6 +534,7 @@ async fn populate_channel_in_db(
     path: &Path,
     overwrite: bool,
     pool: &PgPool,
+    state: &ScanState,
 ) -> Result<(u32, u32), YtarsError> {
     if overwrite {
         debug!("Overwrite requested, deleting all existing data...");
@@ -425,6 +570,10 @@ async fn populate_channel_in_db(
         )
     })
     .await??;
+
+    state
+        .channels_total
+        .store(channels.len() as u32, Ordering::Relaxed);
 
     let (mut scan_count, mut all_count) = (0u32, 0u32);
     for channel_path in channels {
@@ -533,10 +682,12 @@ async fn populate_channel_in_db(
             pool,
             &mut existing_videos,
             &mut existing_thumbnails,
+            state,
         )
         .await?;
         scan_count += channel_scan_count;
         all_count += channel_all_count;
+        state.channels_done.fetch_add(1, Ordering::Relaxed);
     }
 
     Ok((scan_count, all_count))
@@ -546,16 +697,9 @@ pub async fn scan_full(
     video_path: Arc<PathBuf>,
     overwrite: bool,
     pool: PgPool,
-    scanning: Arc<AtomicBool>,
+    scanning: Arc<ScanState>,
 ) -> Result<String, YtarsError> {
-    // Claim the slot atomically. The previous check-then-set was racy, and it
-    // set the flag inside the spawned task -- which under spawn_local does not
-    // run until this handler yields -- so a second request arriving in between
-    // would start a duplicate concurrent scan.
-    if scanning
-        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
-        .is_err()
-    {
+    if !scanning.begin() {
         return Ok("Already running a scan, please wait until complete".to_string());
     }
 
@@ -572,16 +716,16 @@ pub async fn scan_full(
 
         async move {
             // Releases the flag on every exit path, including a panic.
-            let _guard = ScanGuard(scanning);
+            let _guard = ScanGuard(Arc::clone(&scanning));
             // Add all videos and create thumbnails
-            match populate_channel_in_db(&video_path, overwrite, &pool).await {
+            match populate_channel_in_db(&video_path, overwrite, &pool, &scanning).await {
                 Ok((scan_count, all_count)) => {
                     info!("Finished scan: {} added, {} scanned", scan_count, all_count)
                 }
                 Err(e) => info!("Error scanning: {}", e),
             };
             // Add all dislikes for videos
-            match get_all_dislikes(&pool).await {
+            match get_all_dislikes(&pool, &scanning).await {
                 Ok(pull_count) => info!("Finished dislikes: {} added", pull_count),
                 Err(e) => info!("Error scanning: {}", e),
             }
@@ -596,7 +740,7 @@ pub async fn scan_handler(
     params: web::Query<ScanParams>,
     video_path: web::Data<PathBuf>,
     pool: web::Data<PgPool>,
-    scanning: web::Data<Arc<AtomicBool>>,
+    scanning: web::Data<Arc<ScanState>>,
 ) -> Result<HttpResponse, YtarsError> {
     let overwrite = params.overwrite;
     let status = scan_full(
@@ -608,7 +752,10 @@ pub async fn scan_handler(
     .await?;
     info!("{}", status);
 
-    let scan = ScanTemplate { status: &status };
+    let scan = ScanTemplate {
+        status: &status,
+        progress: scanning.progress(),
+    };
     Ok(HttpResponse::Ok()
         .content_type("text/html")
         .body(scan.render()?))

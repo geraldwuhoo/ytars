@@ -6,12 +6,7 @@ use actix_web_static_files::ResourceFiles;
 use clap::Parser;
 use log::{error, info};
 use sqlx::postgres::PgPoolOptions;
-use std::{
-    path::Path,
-    process::Command,
-    sync::{atomic::AtomicBool, Arc},
-    time::Duration,
-};
+use std::{path::Path, process::Command, sync::Arc, time::Duration};
 
 use crate::{
     handlers::{
@@ -20,12 +15,18 @@ use crate::{
         file::{index_handler, thumbnail_channel_handler, thumbnail_video_handler},
         home::home_handler,
         preferences::{preferences_get_handler, preferences_post_handler},
-        scan::{scan_full, scan_handler},
+        scan::{scan_full, scan_handler, ScanState},
         search::search_handler,
         video::yt_video_handler,
     },
     structures::errors::YtarsError,
 };
+
+// musl's default allocator serializes badly across the threads actix-web
+// runs, so use jemalloc for the static musl builds we ship in the container.
+#[cfg(all(target_env = "musl", target_pointer_width = "64"))]
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
@@ -85,7 +86,7 @@ struct Args {
 async fn main() -> Result<(), YtarsError> {
     let args = Args::parse();
     let video_path = Path::new(&args.video_path).canonicalize()?;
-    let scanning = Arc::new(AtomicBool::new(false));
+    let scanning = Arc::new(ScanState::default());
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 

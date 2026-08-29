@@ -31,6 +31,46 @@
             </div>
             <hr>
             {{ status }}
+            {% if let Some(progress) = progress -%}
+            <ul>
+                <li>
+                    <div class="box">
+                        <div class="left">Stage</div>
+                        <div class="right">{{ progress.stage }}</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="box">
+                        <div class="left">Elapsed</div>
+                        <div class="right">{{ progress.elapsed }}</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="box">
+                        <div class="left">Channels</div>
+                        <div class="right">{{ progress.channels_done }} / {{ progress.channels_total }}</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="box">
+                        <div class="left">Videos</div>
+                        <div class="right">{{ progress.videos_scanned }} scanned, {{ progress.videos_added }} added</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="box">
+                        <div class="left">Thumbnails</div>
+                        <div class="right">{{ progress.thumbnails }} generated</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="box">
+                        <div class="left">Likes/dislikes</div>
+                        <div class="right">{{ progress.dislikes_done }} / {{ progress.dislikes_total }}</div>
+                    </div>
+                </li>
+            </ul>
+            {% endif -%}
         </main>
         {% include "footer.html" %}
     </body>
