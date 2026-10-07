@@ -41,7 +41,7 @@ RUN pip install --no-cache-dir --no-compile --target /site-packages -r requireme
 FROM docker.io/denoland/deno:bin-2.5.6 AS deno
 
 # ffmpeg dependency for yt-dlp
-FROM docker.io/library/alpine:3.23.4 AS ffmpeg
+FROM docker.io/library/alpine:3.24.2 AS ffmpeg
 WORKDIR /
 SHELL [ "/bin/ash", "-o", "pipefail", "-c" ]
 RUN apk add --no-cache binutils=2.45.1-r0 && \
