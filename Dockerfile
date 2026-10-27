@@ -29,7 +29,7 @@ RUN cargo build --release --target x86_64-unknown-linux-musl --bin ytars
 # python3-debian12 runtime below (currently CPython 3.11). Compiled extensions
 # carry a cpython-3XX ABI tag, so a mismatch makes them silently unimportable
 # (curl_cffi and brotli both fail this way) while yt-dlp degrades quietly.
-FROM docker.io/library/python:3.11.16-slim-bookworm AS python-builder
+FROM docker.io/library/python:3.15.2-slim-bookworm AS python-builder
 WORKDIR /usr/src
 COPY requirements.txt requirements.txt
 # --target keeps pip/setuptools out of the copied tree, and --no-compile drops
