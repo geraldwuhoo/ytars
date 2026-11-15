@@ -26,10 +26,11 @@ RUN cargo build --release --target x86_64-unknown-linux-musl --bin ytars
 
 # Build Python dependencies.
 # NOTE: this interpreter version must match the one in the distroless
-# python3-debian12 runtime below (currently CPython 3.11). Compiled extensions
+# python3-debian13 runtime below (currently CPython 3.13). Compiled extensions
 # carry a cpython-3XX ABI tag, so a mismatch makes them silently unimportable
 # (curl_cffi and brotli both fail this way) while yt-dlp degrades quietly.
-FROM docker.io/library/python:3.15.2-slim-bookworm AS python-builder
+# renovate.json holds this image to 3.13.x for the same reason.
+FROM docker.io/library/python:3.13.18-slim-trixie AS python-builder
 WORKDIR /usr/src
 COPY requirements.txt requirements.txt
 # --target keeps pip/setuptools out of the copied tree, and --no-compile drops
@@ -50,7 +51,7 @@ RUN apk add --no-cache binutils=2.45.1-r1 && \
     chmod +x ./ffmpeg
 
 # Distroless image to run Python
-FROM gcr.io/distroless/python3-debian12@sha256:2fdb05402a2cf21cf78fdb3ba4c5db167241e9e498140f5bf689d7efb773731f AS python-final
+FROM gcr.io/distroless/python3-debian13@sha256:1c5c87d0e1c292103071d1ef3352a241c65d56a3f4162b74185c1cb281a3af7a AS python-final
 COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/ytars /usr/bin/ytars
 COPY --from=python-builder /site-packages /usr/local/lib/python3/site-packages
 COPY --from=deno /deno /usr/bin/deno

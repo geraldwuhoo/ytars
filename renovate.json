@@ -15,5 +15,13 @@
   },
   "nix": {
     "enabled": true
-  }
+  },
+  "packageRules": [
+    {
+      "description": "The Python builder must match the CPython version in the distroless runtime",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["docker.io/library/python"],
+      "allowedVersions": "/^3\\.13\\./"
+    }
+  ]
 }
