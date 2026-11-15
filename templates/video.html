@@ -54,7 +54,7 @@
             {% let encoded_filename = video.filename | urlencode -%}
             {% let encoded_filestem = video.filestem | urlencode -%}
             <div class="player">
-                <video class="{{ class }}" poster="/files/{{ encoded_channel }}/{{ encoded_filestem }}.webp" controls preload="auto" {% if autoplay_videos %}autoplay{% endif %} {% if video_loop %}loop{% endif %}>
+                <video class="{{ class }}" {% if let Some(aspect_ratio) = video.aspect_ratio %}style="--aspect-ratio: {{ aspect_ratio }}"{% endif %} poster="/files/{{ encoded_channel }}/{{ encoded_filestem }}.webp" controls preload="auto" {% if autoplay_videos %}autoplay{% endif %} {% if video_loop %}loop{% endif %}>
                     <source src="/files/{{ encoded_channel }}/{{ encoded_filename }}" />
                     <track src="/files/{{ encoded_channel }}/{{ encoded_filestem }}.en.vtt" kind="subtitles" srclang="en" label="English" />
                 </video>

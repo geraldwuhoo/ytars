@@ -55,6 +55,7 @@ pub struct VideoModel {
     pub view_count: i64,
     pub likes: Option<i32>,
     pub dislikes: Option<i32>,
+    pub aspect_ratio: Option<f32>,
 }
 
 #[derive(Debug, sqlx::FromRow)]

@@ -69,7 +69,8 @@ pub async fn yt_video_handler(
             video_type AS "video_type: VideoType",
             view_count,
             likes,
-            dislikes
+            dislikes,
+            aspect_ratio
         FROM video
         WHERE id = $1;"#,
         video_id

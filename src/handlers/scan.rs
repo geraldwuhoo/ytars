@@ -321,6 +321,7 @@ struct PendingVideo {
     channel_id: String,
     video_type: VideoType,
     view_count: i64,
+    aspect_ratio: f32,
 }
 
 async fn flush_videos(pool: &PgPool, batch: &mut Vec<PendingVideo>) -> Result<(), YtarsError> {
@@ -340,9 +341,10 @@ async fn flush_videos(pool: &PgPool, batch: &mut Vec<PendingVideo>) -> Result<()
                 description,
                 channel_id,
                 video_type,
-                view_count
+                view_count,
+                aspect_ratio
             )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 ON CONFLICT (id)
                 DO UPDATE
                 SET
@@ -354,7 +356,8 @@ async fn flush_videos(pool: &PgPool, batch: &mut Vec<PendingVideo>) -> Result<()
                     description=$7,
                     channel_id=$8,
                     video_type=$9,
-                    view_count=$10"#,
+                    view_count=$10,
+                    aspect_ratio=$11"#,
             video.id,
             video.title,
             video.filename,
@@ -365,6 +368,7 @@ async fn flush_videos(pool: &PgPool, batch: &mut Vec<PendingVideo>) -> Result<()
             video.channel_id,
             video.video_type as VideoType,
             video.view_count,
+            video.aspect_ratio,
         )
         .execute(&mut *tx)
         .await?;
@@ -493,6 +497,7 @@ async fn populate_videos_in_channel(
                 channel_id: video.channel_id,
                 video_type,
                 view_count: video.view_count,
+                aspect_ratio: video.aspect_ratio,
             });
             if pending_videos.len() >= INSERT_BATCH {
                 flush_videos(pool, &mut pending_videos).await?;
@@ -564,8 +569,10 @@ async fn populate_channel_in_db(
     }
 
     // Two queries for the whole scan, replacing three round trips per video.
+    // Rows without an aspect ratio predate that column; leaving them out makes
+    // the scan re-read their info.json and fill it in.
     let mut existing_videos: HashMap<String, String> =
-        sqlx::query!("SELECT filestem, id FROM video")
+        sqlx::query!("SELECT filestem, id FROM video WHERE aspect_ratio IS NOT NULL")
             .fetch_all(pool)
             .await?
             .into_iter()

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT filestem, id FROM video",
+  "query": "SELECT filestem, id FROM video WHERE aspect_ratio IS NOT NULL",
   "describe": {
     "columns": [
       {
@@ -34,5 +34,5 @@
       false
     ]
   },
-  "hash": "5c975d5f683aa9a45f92cbbb5284a5a6a5700d8448553a7f0cf26bbdb918b3d4"
+  "hash": "9e02f825a55e46a58015b7b7dc75b02d9926309ce157489adbddd92f24dbac42"
 }

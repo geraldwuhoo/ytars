@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO video (\n                id,\n                title,\n                filename,\n                filestem,\n                upload_date,\n                duration_string,\n                description,\n                channel_id,\n                video_type,\n                view_count,\n                aspect_ratio\n            )\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)\n                ON CONFLICT (id)\n                DO UPDATE\n                SET\n                    title=$2,\n                    filename=$3,\n                    filestem=$4,\n                    upload_date=$5,\n                    duration_string=$6,\n                    description=$7,\n                    channel_id=$8,\n                    video_type=$9,\n                    view_count=$10,\n                    aspect_ratio=$11",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Text",
+        "Text",
+        "Text",
+        "Date",
+        "Text",
+        "Text",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "video_type",
+            "kind": {
+              "Enum": [
+                "video",
+                "short",
+                "stream"
+              ]
+            }
+          }
+        },
+        "Int8",
+        "Float4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d5417c37b55b1a461c0f6077e05f0a8e6f3ffca877ef449941ca59e7b47015c6"
+}

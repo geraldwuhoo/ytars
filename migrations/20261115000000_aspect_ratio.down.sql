@@ -1,0 +1,1 @@
+ALTER TABLE video DROP COLUMN IF EXISTS aspect_ratio;
