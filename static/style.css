@@ -44,16 +44,38 @@ li.video {
     margin-bottom: 0.5em;
 }
 
-video {
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    height: auto;
-    margin-top: 1em;
+body.watch {
+    max-width: none;
+
+    & > header,
+    & > footer,
+    & .content {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 60em;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
 
-video.short {
-    width: 50%;
+.player {
+    display: flex;
+    justify-content: center;
+    margin-top: 1em;
+
+    --reserved-height: calc(3vh + 7.5em);
+
+    & video {
+        --aspect-ratio: 1.7778;
+        display: block;
+        aspect-ratio: var(--aspect-ratio);
+        width: min(100%, (100svh - var(--reserved-height)) * var(--aspect-ratio));
+        height: auto;
+    }
+
+    & video.short {
+        --aspect-ratio: 0.5625;
+    }
 }
 
 .save {
@@ -62,12 +84,6 @@ video.short {
     input[type=submit] {
         padding: 0.5em 1em;
         cursor: pointer;
-    }
-}
-
-@media screen and (orientation: portrait) {
-    video.short {
-        width: 85%;
     }
 }
 
@@ -104,25 +120,6 @@ video.short {
         & .subscribers {
             text-align: right;
         }
-    }
-}
-
-@media (max-width: 100em),
-(max-height: 65em) {
-    video.video {
-        width: 100%;
-    }
-}
-
-@media (min-width: 100em) and (min-height: 65em) {
-    video.video {
-        width: 140%;
-    }
-}
-
-@media (min-width: 130em) and (min-height: 80em) {
-    video.video {
-        width: 175%;
     }
 }
 
