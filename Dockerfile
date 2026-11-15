@@ -44,7 +44,7 @@ FROM docker.io/denoland/deno:bin-2.5.6 AS deno
 FROM docker.io/library/alpine:3.24.2 AS ffmpeg
 WORKDIR /
 SHELL [ "/bin/ash", "-o", "pipefail", "-c" ]
-RUN apk add --no-cache binutils=2.45.1-r0 && \
+RUN apk add --no-cache binutils=2.45.1-r1 && \
     wget -q "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-linux-x64.gz" -O- | gunzip - > ffmpeg && \
     strip --strip-all ./ffmpeg && \
     chmod +x ./ffmpeg
