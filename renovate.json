@@ -22,6 +22,14 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["docker.io/library/python"],
       "allowedVersions": "/^3\\.13\\./"
+    },
+    {
+      "description": "Buildah images are rebuilt nightly; batch digest updates weekly",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["quay.io/buildah/stable"],
+      "matchUpdateTypes": ["digest"],
+      "extends": ["schedule:weekly"],
+      "automerge": true
     }
   ]
 }
