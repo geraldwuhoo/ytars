@@ -15,7 +15,7 @@ services:
     volumes:
       - /path/to/videos:/videos:ro
   db:
-    image: docker.io/library/postgres:15.5-alpine3.18
+    image: docker.io/library/postgres:18.7-alpine3.24
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: password
@@ -24,7 +24,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql
 
 volumes:
   db:
